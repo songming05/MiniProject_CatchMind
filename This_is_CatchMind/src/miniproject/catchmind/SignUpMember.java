@@ -155,13 +155,13 @@ public class SignUpMember extends JFrame implements ActionListener{
 	}
 
 	private void constructLabel() {
-		IDL = new JLabel("아이디(ID)");
-		passwordL = new JLabel("비밀번호");
-		confirmPasswordL = new JLabel("비밀번호 확인");
-		nameL = new JLabel("이름");
+		IDL = new JLabel("아이디(ID) *");
+		passwordL = new JLabel("비밀번호 *");
+		confirmPasswordL = new JLabel("비밀번호 확인 *");
+		nameL = new JLabel("이름 *");
 		addressL = new JLabel("주소");
 		phoneNumberL = new JLabel("휴대폰 번호");
-		emailAddressL = new JLabel("이메일");	
+		emailAddressL = new JLabel("이메일 *");	
 		certificateL = new JLabel("인증 메일 발송 :");
 	}//constructLabel
 
@@ -193,12 +193,45 @@ public class SignUpMember extends JFrame implements ActionListener{
 		//이 부분은 합치면서 고쳐야 한다. 종료하면 안된다.
 		
 		else if(e.getActionCommand().equals("중복 확인")) ;
+		//DB에서 ID 겹치는지 검색해야 한다. DAO
 		else if(e.getSource()==registerB) memberRegister();
 		
 	}
 
 	private void memberRegister() {
-		String inputKey = certificateT.getText().trim();
+		//비밀번호 **** 으로 보이게 하는 기능 구현해야한다.
+		
+		String userID = IDT.getText().trim();
+		if(userID.equals("")) {
+			JOptionPane.showMessageDialog(this, "아이디(ID)는 필수 입력사항입니다.");
+			return;
+		}
+		String password = passwordT.getText().trim();
+		if(password.equals("")) {
+			JOptionPane.showMessageDialog(this, "비밀번호는 필수 입력사항입니다.");
+			return;
+		}
+		String confirm = confirmPasswordT.getText().trim();
+		if(!password.equals(confirm)) {
+			JOptionPane.showMessageDialog(this, "비밀번호가 일치하지 않습니다.");
+			return;
+		}
+		String userName = nameT.getText().trim();
+		if(userName.equals("")) {
+			JOptionPane.showMessageDialog(this, "이름은 필수 입력사항입니다.");
+			return;
+		}
+		String userAddress = addressT.getText().trim();
+		String userPhone = phoneNumberT1.getText().trim()
+							+ phoneNumberT2.getText().trim()
+							+ phoneNumberT3.getText().trim();
+		String userEmail = emailAddressT.getText().trim();
+		if(userEmail.equals("")) {
+			JOptionPane.showMessageDialog(this, "이메일은 필수 입력사항입니다.");
+			return;
+		}
+		
+		String inputKey = certificateT.getText().trim();		
 		if(inputKey.equals(certificationKey)) {
 			certificateCheck = true;			
 		}
