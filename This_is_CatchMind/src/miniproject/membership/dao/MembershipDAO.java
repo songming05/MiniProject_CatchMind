@@ -41,6 +41,7 @@ public class MembershipDAO {
 		return conn;
 	}//getConnection
 	
+	//DB의 시퀀스객체에 접근하여 시퀀스 번호를 받아온다.
 	public int getSeq() {
 		int seq = 0;
 		Connection conn = null;
@@ -69,6 +70,7 @@ public class MembershipDAO {
 		return seq;
 	}//getSeq
 
+	//membershipDTO를 통해 데이터를 꺼내오며, 그 데이터를 회원가입 DB에 insert 한다.
 	public void insertArticle(MembershipDTO membershipDTO) {
 		String sql = "insert into membership values(?,?,?,?,?,?,?,?)";
 		Connection conn = null;
@@ -97,4 +99,104 @@ public class MembershipDAO {
 			}
 		}
 	}//insertArticle
+	
+	//ID중복체크 과정
+	public boolean isIDExist(String userID) {//true: 사용가능, false: 사용불가 
+		boolean exist=false;
+		String sql = "select * from membership where id = ?";
+		Connection conn=null;
+		PreparedStatement prps=null;
+		ResultSet rs=null;
+		int sw=0;
+		try {
+			conn=getConnection();
+			prps = conn.prepareStatement(sql);
+			prps.setString(1, userID);
+			rs = prps.executeQuery();
+			
+			if(rs.next()) {
+				exist = false;
+				sw=1;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if(rs!=null) rs.close();
+				if(prps!=null) prps.close();
+				if(conn!=null) conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		if(sw==0) exist=true;
+		return exist;
+	}//isIDExist
+	
+
+	public boolean isIDCorrespond(String userID) {
+		boolean idCheck=false;
+		String sql = "select * from membership where id = ?";
+		Connection conn=null;
+		PreparedStatement prps=null;
+		ResultSet rs=null;
+		try {
+			conn=getConnection();
+			prps = conn.prepareStatement(sql);
+			prps.setString(1, userID);
+			rs = prps.executeQuery();
+			
+			if(rs.next()) {
+				idCheck = true;
+				return idCheck;
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if(rs!=null) rs.close();
+				if(prps!=null) prps.close();
+				if(conn!=null) conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return idCheck;
+	}
+
+	public boolean isPasswordCorrespond(String userID, String userPWD) {
+		boolean idNPasswordCheck=false;
+		String sql = "select * from membership where id = ?";
+		Connection conn=null;
+		PreparedStatement prps=null;
+		ResultSet rs=null;
+		try {
+			conn=getConnection();
+			prps = conn.prepareStatement(sql);
+			prps.setString(1, userID);
+			rs = prps.executeQuery();
+			
+			if(rs.next()) {
+				String checkPassword = rs.getString("password");
+				if(userPWD.equals(checkPassword)) {
+					idNPasswordCheck = true;
+				}
+				else return idNPasswordCheck;
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if(rs!=null) rs.close();
+				if(prps!=null) prps.close();
+				if(conn!=null) conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return idNPasswordCheck;
+	}
+	
 }

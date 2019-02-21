@@ -8,6 +8,7 @@ public class JTextFieldLimit extends PlainDocument {
 	private int limit;
 	private boolean toUppercase = false;
  
+	//Document 타입이며, limit 만큼 글자수를 제한한다.
 	JTextFieldLimit(int limit) {
 		super();
 		this.limit = limit;

@@ -8,6 +8,7 @@ public class MailSendManager {
 		return certificationKey;
 	}
 
+	//수신할 메일 주소를 param으로 받는다.
 	public MailSendManager(String userMail) {
 		certificationKey = makeCertificationKey();
 		String text = "캐치마인드 회원가입 인증 절차입니다.\n\n"
@@ -19,6 +20,7 @@ public class MailSendManager {
 		gmailSend.GmailSet(userMail+"@gmail.com", "캐치마인드 가입인증 메일입니다.", text);
 	}
 
+	//5자리 랜덤한 숫자+영어대문자로 이루어진 Key를 생성한다.
 	private String makeCertificationKey() {
 		String key="";
 		Random ranndom = new Random();

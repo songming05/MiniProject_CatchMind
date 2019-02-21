@@ -1,5 +1,6 @@
 package miniproject.catchmind;
 
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -8,6 +9,8 @@ import java.awt.Panel;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -23,22 +26,16 @@ import miniproject.membership.dto.MembershipDTO;
 
 
 public class SignUpMember extends JFrame implements ActionListener{	
-	private JLabel IDL, passwordL, confirmPasswordL, nameL, addressL, 
+	private JLabel idL, passwordL, confirmPasswordL, nameL, addressL, 
 					phoneNumberL, emailAddressL, certificateL;
-	private JTextField IDT, nameT;
+	private JTextField idT, nameT;
 	private JPasswordField passwordT, confirmPasswordT;
 	private JTextField addressT, phoneNumberT1, phoneNumberT2, phoneNumberT3, 
 						emailAddressT, certificateT;
 	private JButton duplicationB, certificateB, cancelB, registerB;
 	private JComboBox<String> mailSelect;
-	private boolean duplicateCheck, certificateCheck;
+	private boolean duplicateCheck, certificateCheck; //true: 사용가능, false: 사용불가
 	private String certificationKey;
-	
-	
-	//main
-	public static void main(String[] args) {
-		SignUpMember signUpMember = new SignUpMember();
-	}
 	
 	public SignUpMember() {
 		super("회원가입");
@@ -81,7 +78,7 @@ public class SignUpMember extends JFrame implements ActionListener{
 		buttonRowP = new Panel(new GridLayout(1, 2, 20, 10));
 		
 				
-		IDP.add(IDL);
+		IDP.add(idL);
 		passwordP.add(passwordL);
 		confirmPasswordP.add(confirmPasswordL);
 		nameP.add(nameL);
@@ -90,7 +87,7 @@ public class SignUpMember extends JFrame implements ActionListener{
 		emailP.add(emailAddressL);
 		certificateP.add(certificateL);
 				
-		IDRowP.add(IDT);
+		IDRowP.add(idT);
 		IDRowP.add(duplicationB);
 		passwordRowP.add(passwordT);
 		passwordRowP.add(new JLabel("(5~12자 이내로 입력)"));
@@ -152,18 +149,25 @@ public class SignUpMember extends JFrame implements ActionListener{
 		setBounds((dimension.width/2-frameW/2), (dimension.height/2-frameH/2), frameW, frameH);
 		setResizable(false);
 		setVisible(true);
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 	}//constr
 
 	private void event() {
 		cancelB.addActionListener(this);
 		registerB.addActionListener(this);
 		duplicationB.addActionListener(this);
-		certificateB.addActionListener(this);		
+		certificateB.addActionListener(this);
+		this.addWindowListener(new WindowAdapter(){
+			@Override
+			public void windowClosing(WindowEvent e){
+				SignUpMember.this.setVisible(false);
+				SignUpMember.this.dispose();
+			}
+		});
 	}
 
 	private void constructLabel() {
-		IDL = new JLabel("아이디(ID) *");
+		idL = new JLabel("아이디(ID) *");
 		passwordL = new JLabel("비밀번호 *");
 		confirmPasswordL = new JLabel("비밀번호 확인 *");
 		nameL = new JLabel("이름 *");
@@ -174,8 +178,8 @@ public class SignUpMember extends JFrame implements ActionListener{
 	}//constructLabel
 
 	private void constructTextField() {
-		IDT = new JTextField(12);
-		IDT.setDocument(new JTextFieldLimit(10));
+		idT = new JTextField(12);
+		idT.setDocument(new JTextFieldLimit(10));
 		passwordT = new JPasswordField(8);
 		passwordT.setDocument(new JTextFieldLimit(12));
 		confirmPasswordT = new JPasswordField(8);
@@ -195,16 +199,19 @@ public class SignUpMember extends JFrame implements ActionListener{
 
 	private void constructButton() {
 		duplicationB = new JButton("중복 확인");
+		duplicationB.setBackground(new Color(250,250,190));
 		cancelB = new JButton("취소");
+		cancelB.setBackground(Color.gray);
 		registerB = new JButton(" 작성 완료 ");
 		certificateB = new JButton("발송");
+		certificateB.setBackground(new Color(250,250,190));
 	}//constructButton
 	
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if(e.getActionCommand().equals("발송")) mailSend();
-		else if(e.getActionCommand().equals("취소")) System.exit(0);
+		else if(e.getActionCommand().equals("취소")) return;
 		//이 부분은 합치면서 고쳐야 한다. 종료하면 안된다.
 		
 		else if(e.getActionCommand().equals("중복 확인")) checkID();
@@ -212,16 +219,46 @@ public class SignUpMember extends JFrame implements ActionListener{
 		else if(e.getSource()==registerB) memberRegister();
 		
 	}
-
-	private void checkID() {
+	
+	//회원목록의 DB에 접근하여 입력한 ID가 이미 존재하는지 검사한다.
+	private void checkID() {//true: 사용가능, false: 사용불가
 		duplicateCheck=false;
-		String userID = IDT.getText().trim();
+		String userID = idT.getText().trim();
+		if(userID.equals("")) {
+			JOptionPane.showMessageDialog(this, "아이디(ID)는 필수 입력사항입니다.");
+			return;
+		}
+		else if(userID.length()<3) {
+			JOptionPane.showMessageDialog(this, "아이디(ID)는 3글자 이상 입력하세요.");
+			return;
+		}
 		//DAO 중복체크
-		duplicateCheck=true;
+		MembershipDAO membershipDAO = MembershipDAO.getInstance();
+		duplicateCheck = membershipDAO.isIDExist(userID);
+		if(duplicateCheck) JOptionPane.showMessageDialog(this, "사용 가능한 아이디 입니다.");
+		else {
+			JOptionPane.showMessageDialog(this, "이미 존재하는 아이디 입니다."
+												+ "\n다른 아이디를 입력해 주세요.");
+			return;
+		}
 	}
 
+	//사용자가 입력한 메일주소로 인증메일을 발송한다.(발신자:songming05)
+	private void mailSend() {
+		String userEmail = emailAddressT.getText().trim();
+		MailSendManager mailSendManager = new MailSendManager(userEmail);
+		
+		certificationKey = mailSendManager.getCertificationKey();
+		if(certificationKey.length()<4) JOptionPane.showMessageDialog(this, "인증 메일이 발송되었습니다.");
+	}
+	
+	/*
+	 * 회원DB에 올리기 전에 모든 적합성 검사를 한다.
+	 * ID는 10글자 이상 입력불가, password는 12자 이상 불가
+	 * 이름은 영어 최대12자, 한글 최대 6자
+	 */
 	private void memberRegister() {
-		String userID = IDT.getText().trim();
+		String userID = idT.getText().trim();
 		if(userID.equals("")) {
 			JOptionPane.showMessageDialog(this, "아이디(ID)는 필수 입력사항입니다.");
 			return;
@@ -233,6 +270,10 @@ public class SignUpMember extends JFrame implements ActionListener{
 		String userPassword = passwordT.getText().trim();
 		if(userPassword.equals("")) {
 			JOptionPane.showMessageDialog(this, "비밀번호는 필수 입력사항입니다.");
+			return;
+		}
+		else if(userPassword.length()<5) {
+			JOptionPane.showMessageDialog(this, "비밀번호는 5글자 이상 입력하세요.");
 			return;
 		}
 		String confirm = confirmPasswordT.getText().trim();
@@ -297,11 +338,4 @@ public class SignUpMember extends JFrame implements ActionListener{
 		
 	}
 
-	private void mailSend() {
-		String userEmail = emailAddressT.getText().trim();
-		MailSendManager mailSendManager = new MailSendManager(userEmail);
-		
-		certificationKey = mailSendManager.getCertificationKey();
-		if(certificationKey.length()<4) JOptionPane.showMessageDialog(this, "인증 메일이 발송되었습니다.");
-	}
 }
