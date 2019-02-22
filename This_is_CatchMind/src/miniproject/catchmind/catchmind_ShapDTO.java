@@ -1,14 +1,16 @@
 package miniproject.catchmind;
 
+import java.io.Serializable;
+
 enum Shape{
 	LINE, RECT
 }
 
-public class catchmind_ShapDTO {
+public class catchmind_ShapDTO implements Serializable{
 	private int  x1, y1, x2, y2;
-	private Shape shape;
 	private int colorNum;
-
+	private Shape shape;
+	
 	public int getColorNum() {
 		return colorNum;
 	}
@@ -56,5 +58,7 @@ public class catchmind_ShapDTO {
 	public void setY2(int y2) {
 		this.y2 = y2;
 	}
+	
+	
 
 }
