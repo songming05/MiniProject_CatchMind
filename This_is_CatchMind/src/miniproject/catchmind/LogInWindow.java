@@ -10,7 +10,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -28,10 +34,27 @@ public class LogInWindow extends JFrame implements ActionListener{
 	
 	public static void main(String[] args) {
 		LogInWindow logInWindow = new LogInWindow();
+		while(true) {
+			try {
+				logInWindow.startBGM(0);
+				Thread.sleep(152000);
+				logInWindow.startBGM(1);
+				Thread.sleep(190000);
+				logInWindow.startBGM(2);
+				Thread.sleep(201000);
+				logInWindow.startBGM(3);
+				Thread.sleep(150000);
+				logInWindow.startBGM(4);
+				Thread.sleep(118000);
+				//break;
+			} catch(Exception e) {
+				
+			}
+		}
 	}
 	
 	public LogInWindow() {
-		super("캐치마인드 로그인");	
+		super("캐치마인드 로그인");
 		
 		constructField();
 		event();
@@ -78,6 +101,7 @@ public class LogInWindow extends JFrame implements ActionListener{
 		cancelB.addActionListener(this);
 		joinB.addActionListener(this);
 		loginB.addActionListener(this);
+		passwordT.addActionListener(this);
 		this.addWindowListener(new WindowAdapter(){
 			@Override
 			public void windowClosing(WindowEvent e){
@@ -108,7 +132,7 @@ public class LogInWindow extends JFrame implements ActionListener{
 		else if(e.getSource()==joinB) {
 			SignUpMember signUpMember = new SignUpMember();			
 		}
-		else if(e.getSource()==loginB) {
+		else if(e.getSource()==loginB || e.getSource()==passwordT) {
 			String userID = idT.getText().trim();
 			String userPWD = passwordT.getText().trim();
 			
@@ -126,13 +150,53 @@ public class LogInWindow extends JFrame implements ActionListener{
 			else {
 				JOptionPane.showMessageDialog(this, "로그인 성공!");
 				//memebershipDTO 전송!
+				
+				String userName = membershipDAO.getName(userID);
+				int userScore = membershipDAO.getScore(userID);
+				IdNameScoreDTO idnamescoreDTO = new IdNameScoreDTO();
+				idnamescoreDTO.setId(userID);
+				idnamescoreDTO.setName(userName);
+				idnamescoreDTO.setScore(userScore);
+				
 				//대기실 창 생성!
+				WaitingRoomClient waitingroomclient = new WaitingRoomClient();
+				waitingroomclient.event();
+				waitingroomclient.service(idnamescoreDTO);
+			
 				
 				this.setVisible(false);
 				this.dispose();
 				return;				
 			}
 		}
+	}
+	
+	public void startBGM(int num) {
+		File[] bgmArray = new File[5];
+		AudioInputStream audioInputStream;
+		AudioFormat audioFormat;
+		DataLine.Info info;
+		
+		bgmArray[0] = new File("Lazy_Rock.wav"); // 사용시에는 개별 폴더로 변경할 것
+		bgmArray[1] = new File("Lucid_Dreamer.wav");
+		bgmArray[2] = new File("Fond_Memories.wav");
+		bgmArray[3] = new File("If_I_Had_a_Chicken.wav");
+		bgmArray[4] = new File("From_the_Fall.wav");
+		
+		Clip clip;
+		
+		try {
+			audioInputStream = AudioSystem.getAudioInputStream(bgmArray[num]);
+			audioFormat = audioInputStream.getFormat();
+			info = new DataLine.Info(Clip.class, audioFormat);
+			clip = (Clip)AudioSystem.getLine(info);
+			clip.open(audioInputStream);
+			clip.start();
+			
+		} catch (Exception e) {
+			System.out.println("err : " + e);
+		}
+		
 	}
 
 }

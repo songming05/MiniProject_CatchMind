@@ -9,7 +9,7 @@ import miniproject.membership.dto.MembershipDTO;
 
 public class MembershipDAO {
 	private String driver = "oracle.jdbc.driver.OracleDriver";
-	private String url = "jdbc:oracle:thin:@localhost:1521:xe";
+	private String url = "jdbc:oracle:thin:@192.168.51.79:1521:xe";
 	private String user = "java";
 	private String password = "itbank";
 	
@@ -197,6 +197,70 @@ public class MembershipDAO {
 			}
 		}
 		return idNPasswordCheck;
+	}
+
+	public String getName(String userID) {
+		String sql = "select * from membership where id = ?";
+		String name="";
+		Connection conn=null;
+		PreparedStatement prps=null;
+		ResultSet rs=null;
+		try {
+			conn=getConnection();
+			prps = conn.prepareStatement(sql);
+			prps.setString(1, userID);
+			rs = prps.executeQuery();
+			
+			if(rs.next()) {
+				name = rs.getString("name");
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if(rs!=null) rs.close();
+				if(prps!=null) prps.close();
+				if(conn!=null) conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return name;
+		
+	}
+
+	public int getScore(String userID) {
+		int score=0;
+		String sql = "select * from membership where id = ?";
+		
+		Connection conn=null;
+		PreparedStatement prps=null;
+		ResultSet rs=null;
+		try {
+			conn=getConnection();
+			prps = conn.prepareStatement(sql);
+			prps.setString(1, userID);
+			rs = prps.executeQuery();
+			
+			if(rs.next()) {
+				score = rs.getInt("total_score");
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if(rs!=null) rs.close();
+				if(prps!=null) prps.close();
+				if(conn!=null) conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return score;
+		
 	}
 	
 }
