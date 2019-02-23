@@ -3,7 +3,7 @@ package miniproject.catchmind;
 import java.io.Serializable;
 
 enum Info{
-	JOIN , EXIT,SEND , CREATE
+	JOIN , EXIT,SEND , CREATE, WAIT ,DELETE
 }
 
 public class WaitingRoomChattingDTO implements Serializable{
@@ -11,14 +11,10 @@ public class WaitingRoomChattingDTO implements Serializable{
 	private String nickName;
 	private String message;
 	private Info command;
-	
 
-	public Info getCommand() {
-		return command;
-	}
-	public void setCommand(Info command) {
-		this.command = command;
-	}
+	
+	
+	
 	/*
 	public int getSeq() {
 		return seq;
@@ -28,6 +24,13 @@ public class WaitingRoomChattingDTO implements Serializable{
 	}
 	*/
 	
+	
+	public Info getCommand() {
+		return command;
+	}
+	public void setCommand(Info command) {
+		this.command = command;
+	}
 	public String getNickName() {
 		return nickName;
 	}

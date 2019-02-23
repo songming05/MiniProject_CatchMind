@@ -45,16 +45,17 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 	private JButton[] btn; //색깔 버튼
 	private JRadioButton thinB, thickB; //선 굵기
 	private catchmind_Canvas can; //캔버스
-	private ArrayList<catchmind_ShapDTO> sendlist; //서버로 보내는 list
-	private ArrayList<catchmind_ShapDTO> serverInfoList; //서버에서 받아온 list
-	private ArrayList<catchmind_ShapDTO> serverDrawList; //서버에서 받아온걸 그리는 list
+	private ArrayList<catchmind_ShapDTO> sendList; //서버로 보내는 list
+	private ArrayList<catchmind_ShapDTO> serverInfoList; //서버에서 받아온 list	
+	private ArrayList<catchmind_ShapDTO> shapeDTOList;
+	
+
 	private int colorNum; //색깔 기준
 	
 	public ChatFrame(){
-		super("채팅창");
+		super("이것은 그림인가 낙서인가 이때까지 이런 게임은 없었다.");
 		setLayout(null);
-		
-		
+
 		chatSend = new JTextField();
 		chatPrint= new JTextArea();
 		chatModel = new DefaultListModel<ChatDTO>();
@@ -107,9 +108,8 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 		can.setBounds(50, 50, 550, 565);
 		
 		//리스트
-		sendlist = new ArrayList<catchmind_ShapDTO>();
+		sendList = new ArrayList<catchmind_ShapDTO>();
 		serverInfoList = new ArrayList<catchmind_ShapDTO>();
-		serverDrawList = new ArrayList<catchmind_ShapDTO>();
 		
 		add(can);
 		
@@ -133,24 +133,19 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 		setVisible(true);
 		
 		//버튼 이벤트
-		for(int i=0; i<title.length; i++) {
-			btn[i].addActionListener(this);
-		}
+		for(int i=0; i<title.length; i++) btn[i].addActionListener(this);
 		
 		
 		this.addWindowListener(new WindowAdapter(){
 			@Override
-			public void windowClosing(WindowEvent e){
-				
+			public void windowClosing(WindowEvent e){				
 				try {
-					if(chatClientOos==null||chatClientOis==null)System.exit(0);
-
+					if(chatClientOos==null||chatClientOis==null) System.exit(0);
 					ChatDTO chatdto=new ChatDTO();
-					chatdto.setCommand(Info.EXIT);
+					chatdto.setCommand(Info.WAIT);
 					chatClientOos.writeObject(chatdto);
 					chatClientOos.flush();
 				} catch (IOException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
@@ -159,69 +154,47 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 		can.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(MouseEvent e){
-				x1 =e.getX();
-				y1 =e.getY();
-				
-				
+				x1 =e.getX();y1 =e.getY();			
 			}
 			@Override
-			public void mouseReleased(MouseEvent e){
-				x2 = e.getX();
-				y2 = e.getY();
-				
+			public void mouseReleased(MouseEvent e){//       ===================   마우스 릴리즈 ===========================
+				x2 = e.getX();	y2 = e.getY();
+
 				catchmind_ShapDTO dto = new catchmind_ShapDTO();
-				dto.setX1(x1);
-				dto.setY1(y1);
-				dto.setX2(x2);
-				dto.setY2(y2);
+				dto.setX1(x1);	dto.setY1(y1);	dto.setX2(x2);	dto.setY2(y2);
 				
 				dto.setColorNum(colorNum);
 				
-				if(thinB.isSelected()) {
-					dto.setShape(Shape.LINE);
-				}else if(thickB.isSelected()) {
-					dto.setShape(Shape.RECT);
-				}
+				if(thinB.isSelected()) dto.setShape(Shape.LINE);
+				else if(thickB.isSelected()) dto.setShape(Shape.RECT);				
+				sendList.add(dto);		
 				
-				
-				sendlist.add(dto);
-				/*
 				try {
-					chatClientOos.writeObject(sendlist);
-					System.out.println("서버로 보낸 리스트 수는 = "+sendlist.size());
+					ChatDTO chatDTO = new ChatDTO();
+					chatDTO.setCommand(Info.WAIT);
+					
+					chatClientOos.writeObject(chatDTO);
+					chatClientOos.writeObject(sendList);
 					chatClientOos.flush();
 				} catch (IOException e1) {
 					e1.printStackTrace();
-				}
-				*/
-				
+				}				
 			}
-
 		});
 		
 		can.addMouseMotionListener(new MouseAdapter(){
 			@Override
 			public void mouseDragged(MouseEvent e){
-				x2 = e.getX();
-				y2 = e.getY();
-				
-				can.repaint();
+				System.out.print("drag    ");
+				x2 = e.getX();	y2 = e.getY();	can.repaint();
 				
 				//연필
 				catchmind_ShapDTO dto = new catchmind_ShapDTO();
-				dto.setX1(x1);
-				dto.setY1(y1);
-				dto.setX2(x2);
-				dto.setY2(y2);
-				
-				dto.setColorNum(colorNum);
-				
-				if(thinB.isSelected()) {
-					dto.setShape(Shape.LINE);
-				}else if(thickB.isSelected()) {
-					dto.setShape(Shape.RECT);
-				}
-				sendlist.add(dto);
+				dto.setX1(x1);	dto.setY1(y1);	dto.setX2(x2);	dto.setY2(y2);				
+				dto.setColorNum(colorNum);				
+				if(thinB.isSelected()) 	dto.setShape(Shape.LINE);
+				else if(thickB.isSelected()) dto.setShape(Shape.RECT);
+				sendList.add(dto);
 				
 				x1 = x2;
 				y1 = y2;
@@ -237,63 +210,70 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 		chatSend.addActionListener(this);//엔터키로 전송가능
 		
 	}//생성자 종료
-	
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		catchmind_ShapDTO dto = new catchmind_ShapDTO();
-		if(e.getSource() == btn[0]) {
-			colorNum = 0;
-		}else if(e.getSource() == btn[1]) {
-			colorNum = 1;
-		}else if(e.getSource() == btn[2]) {
-			colorNum = 2;
-		}else if(e.getSource() == btn[3]) {
-			colorNum = 3;
-		}else if(e.getSource() == btn[4]) {
-			colorNum = 4;
-		}else if(e.getSource() == btn[5]) {
-			colorNum = 5;
-		}
-		if(e.getSource()==exitB || e.getSource()==readyB || e.getSource()==startB) {
-			String chatMsg=chatSend.getText();
+		String chatMsg=chatSend.getText();
+		
+		if(e.getSource()==chatSend || e.getSource()==sendB) {
 			
 			ChatDTO chatDTO =new ChatDTO();
+			chatDTO.setCommand(Info.SEND);
+			chatDTO.setMessage(chatMsg);
 			
-			if(e.getSource()==exitB) {
-				chatDTO.setCommand(Info.EXIT);
-				
-				/*
-				int seq = playerList.getSelectedValue().getSeq();
-				ChatDAO chatDAO = ChatDAO.getInstance();
-				chatDAO.delete(seq);
-				chatModel.remove(playerList.getSelectedIndex());// jlist에서 선택한 index항목 지우라
-				 */
+			try {
+				chatClientOos.writeObject(chatDTO);
+				chatClientOos.writeObject(sendList);
+				chatClientOos.flush();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			chatSend.setText("");
+		}else if(e.getSource()==exitB||chatMsg.toLowerCase().equals("exit")) {
+			
+		}
+
+		catchmind_ShapDTO dto = new catchmind_ShapDTO();
+		
+		if(e.getSource() == btn[0]) { colorNum = 0;
+		}else if(e.getSource() == btn[1]) { colorNum = 1;
+		}else if(e.getSource() == btn[2]) { colorNum = 2;
+		}else if(e.getSource() == btn[3]) { colorNum = 3;
+		}else if(e.getSource() == btn[4]) {	colorNum = 4;
+		}else if(e.getSource() == btn[5]) {	colorNum = 5;
+		}
+																	//서버로  채팅 보내기
+		/*
+		if(e.getSource()==exitB || e.getSource()==readyB || e.getSource()==startB) {
+
+			
+			if(e.getSource()==exitB) {	chatDTO.setCommand(Info.EXIT);
 			}
 			else if(e.getSource()==readyB) {
-				
 			}
-			else if(e.getSource()==startB) {
-				
-			}
+			else if(e.getSource()==startB) {				
+			} 
 			else{
-				chatDTO.setCommand(Info.SEND);
-				chatDTO.setMessage(chatMsg);
 				
 			}
 			
 			try {
+				
 				chatClientOos.writeObject(chatDTO);
+				chatClientOos.writeObject(sendList);
 				chatClientOos.flush();
+			
 			} catch (IOException io) {
-				// TODO Auto-generated catch block
 				io.printStackTrace();
 			}
-			chatSend.setText("");
-		}
+			*/
+			
+		
 	}//actionPerformed 종료
 	
 	public void chatIp() {
-		String chatServerIp="192.168.51.71"; //학원에서는 192.168.51.79 
+		String chatServerIp="192.168.53.17"; //학원에서는 192.168.51.79 
 		
 		if(chatServerIp==null|| chatServerIp.length()==0) {
 			System.out.println("서버 IP가 입력되지 않았습니다.");
@@ -305,22 +285,25 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 		}
 		
 		try {
-			chatSocket =new Socket(chatServerIp,9500);
-				
+			chatSocket =new Socket(chatServerIp,9500);				
 			chatClientOos=new ObjectOutputStream(chatSocket.getOutputStream());
 			chatClientOis=new ObjectInputStream(chatSocket.getInputStream());
 				
 			ChatDTO chatDTO=new ChatDTO();
 			chatDTO.setCommand(Info.JOIN);
 			chatDTO.setNickName(chatNickName);
+			
 			chatClientOos.writeObject(chatDTO);
+			chatClientOos.writeObject(sendList);
 			chatClientOos.flush();
+			
+			System.out.println("CT는 보냈따");
+			chatClientOos.flush();
+			
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.exit(0);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.exit(0);
 		}
@@ -328,11 +311,15 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 		chatThread.start();
 	}//chatIp 종료
 	
-	public void run() {
+	public void run() {		//서버로 부터 받는곳 
 		ChatDTO chatDTO =null;
+		
 		while(true) {
 			try {
 				chatDTO=(ChatDTO)chatClientOis.readObject();
+				shapeDTOList = (ArrayList<catchmind_ShapDTO>) chatClientOis.readObject();
+				can.repaint();
+				
 				if(chatDTO.getCommand()==Info.EXIT){
 					chatClientOos.close();
 					chatClientOis.close();
@@ -340,12 +327,15 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 					System.exit(0);
 				}
 				else if(chatDTO.getCommand()==Info.SEND){
+					
 					chatPrint.append(chatDTO.getMessage()+"\n");
 					int chatPos = chatPrint.getText().length();
 					chatPrint.setCaretPosition(chatPos);//스크롤바 위치 계속요청
 				}
+				
+				System.out.println("리스트로 핸들러는 읽었다.");
+				
 			}catch (IOException io) {
-					// TODO Auto-generated catch block
 					io.printStackTrace();
 			}catch(ClassNotFoundException e){
 				e.printStackTrace();
@@ -355,13 +345,8 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 	public void getchatModel() {
 		//DB의 모든 항목을 꺼내서 JList에 뿌리기
 		ChatDAO chatDAO = ChatDAO.getInstance();//DAO를 참조하기위해 생성
-		ArrayList<ChatDTO> chatList = chatDAO.getChatList();//DAO의 getFriendList()호출해서 반환값을 list에 저장
-		
-		
-		for(ChatDTO dto : chatList) {
-			chatModel.addElement(dto);//list에 있는값 차례대로 출력
-		}
-		
+		ArrayList<ChatDTO> chatList = chatDAO.getChatList();//DAO의 getFriendList()호출해서 반환값을 list에 저장	
+		for(ChatDTO dto : chatList) chatModel.addElement(dto);//list에 있는값 차례대로 출력	
 	}
 	
 	
@@ -414,22 +399,19 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 		this.thickB = thickB;
 	}
 
-	public ArrayList<catchmind_ShapDTO> getSendlist() {
-		return sendlist;
+	public ArrayList<catchmind_ShapDTO> getSendList() {
+		return sendList;
+	}
+	public void setSendList(ArrayList<catchmind_ShapDTO> sendlist) {
+		this.sendList = sendlist;
+	}
+	public ArrayList<catchmind_ShapDTO> getServerInfoList() {
+		return serverInfoList;
 	}
 
-	public void setSendlist(ArrayList<catchmind_ShapDTO> sendlist) {
-		this.sendlist = sendlist;
+	public void setServerInfoList(ArrayList<catchmind_ShapDTO> serverInfoList) {
+		this.serverInfoList = serverInfoList;
 	}
-
-	public ArrayList<catchmind_ShapDTO> getServerDrawList() {
-		return serverDrawList;
-	}
-
-	public void setServerDrawList(ArrayList<catchmind_ShapDTO> serverDrawList) {
-		this.serverDrawList = serverDrawList;
-	}
-
 	public int getColorNum() {
 		return colorNum;
 	}

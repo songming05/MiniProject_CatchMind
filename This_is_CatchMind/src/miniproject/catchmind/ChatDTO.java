@@ -7,9 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-enum Info{
-	JOIN,EXIT,SEND
-}
+
 @SuppressWarnings("serial")
 class ChatDTO implements Serializable{
 	private int seq;

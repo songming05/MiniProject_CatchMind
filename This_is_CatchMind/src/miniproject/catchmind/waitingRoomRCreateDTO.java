@@ -9,14 +9,8 @@ public class waitingRoomRCreateDTO implements Serializable{
 		private String roomPass;
 		private int person;//0 ->2Έν  // 1->3Έν //2->4Έν 
 		private Info command;
-		private int sw;
 		
-		public int getSw() {
-			return sw;
-		}
-		public void setSw(int sw) {
-			this.sw = sw;
-		}
+
 		public Info getCommand() {
 			return command;
 		}

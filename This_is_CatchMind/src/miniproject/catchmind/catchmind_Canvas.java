@@ -14,11 +14,11 @@ import java.util.ArrayList;
 
 public class catchmind_Canvas extends Canvas /*implements Runnable*/{
 	//private ChatFrame chat;
-	private catchmind_MsPaint mp;
+	private ChatFrame mp;
 	private Image bufferImg;
 	private Graphics bufferG;
 	
-	public catchmind_Canvas(catchmind_MsPaint mp){
+	public catchmind_Canvas(ChatFrame mp){
 		this.mp = mp;
 		setBackground(new Color(255, 255 ,255));		
 	}
@@ -36,10 +36,8 @@ public class catchmind_Canvas extends Canvas /*implements Runnable*/{
 		
 		if(mp.getServerInfoList().size() > 0) {
 			for(catchmind_ShapDTO dto : mp.getServerInfoList()) {
-				int x1 = dto.getX1(); //getter로 x1값 가져오기 
-				int y1 = dto.getY1(); //getter로 y1값 가져오기 
-				int x2 = dto.getX2(); //getter로 x2값 가져오기 
-				int y2 = dto.getY2(); //getter로 y2값 가져오기 				
+				int x1 = dto.getX1(); int y1 = dto.getY1(); int x2 = dto.getX2(); int y2 = dto.getY2();
+				
 				switch(dto.getColorNum()) {
 					case 0 : bufferG.setColor(Color.BLACK); break; //검은색
 					case 1 : bufferG.setColor(Color.RED); break; //빨강색
