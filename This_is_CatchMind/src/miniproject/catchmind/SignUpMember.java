@@ -334,6 +334,8 @@ public class SignUpMember extends JFrame implements ActionListener{
 											+ "\n회원가입이 완료 되었습니다."
 											+ "\n로그인창으로 이동합니다.");
 			//로그인 창으로
+			setVisible(false);
+			dispose();
 		}
 		
 	}
