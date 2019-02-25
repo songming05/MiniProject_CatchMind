@@ -52,7 +52,7 @@ public class LogInWindow extends JFrame implements ActionListener{
 				Thread.sleep(118000);
 				//break;
 			} catch(Exception e) {
-				
+				e.printStackTrace();				
 			}
 		}
 	}
@@ -61,8 +61,7 @@ public class LogInWindow extends JFrame implements ActionListener{
 		super("캐치마인드 로그인");
 		
 		constructField();
-		event();
-		
+		event();		
 		
 		setLayout(null);
 		Container container = this.getContentPane();
@@ -86,11 +85,6 @@ public class LogInWindow extends JFrame implements ActionListener{
 		findID_PasswordP.add(findIDB);
 		findID_PasswordP.add(findPasswordB);
 		
-		
-		//labelP.setBackground(Color.DARK_GRAY);
-		//textP.setBackground(Color.WHITE);
-		//loginP.setBackground(Color.pink);;
-		
 		container.add(labelP);
 		container.add(textP);
 		container.add(loginP);
@@ -99,7 +93,7 @@ public class LogInWindow extends JFrame implements ActionListener{
 		//이미지 넣을 수 있으면 넣자
 		Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
 		int frameW = 300;
-		int frameH = 220;
+		int frameH = 215;
 		setBounds((dimension.width/2-frameW/2), (dimension.height/2-frameH/2), frameW, frameH);
 		setVisible(true);
 		setResizable(false);
@@ -144,9 +138,11 @@ public class LogInWindow extends JFrame implements ActionListener{
 			int confirm = JOptionPane.showConfirmDialog(this, "정말로 종료하시겠습니까?");			
 			if(confirm==JOptionPane.YES_OPTION) System.exit(0);
 			else return;
-		} else if(e.getSource()==joinB) {
+		} 
+		else if(e.getSource()==joinB) {
 			SignUpMember signUpMember = new SignUpMember();			
-		} else if(e.getSource()==loginB || e.getSource()==passwordT) {
+		} 
+		else if(e.getSource()==loginB || e.getSource()==passwordT) {
 			String userID = idT.getText().trim();
 			String userPWD = passwordT.getText().trim();
 			
@@ -163,7 +159,6 @@ public class LogInWindow extends JFrame implements ActionListener{
 			}
 			else {
 				JOptionPane.showMessageDialog(this, "로그인 성공!");
-				//memebershipDTO를 IdNameScore DTO에 전송!
 				
 				String userName = membershipDAO.getName(userID);
 				int userScore = membershipDAO.getScore(userID);
@@ -197,7 +192,8 @@ public class LogInWindow extends JFrame implements ActionListener{
 		AudioFormat audioFormat;
 		DataLine.Info info;
 		
-		bgmArray[0] = new File("Lazy_Rock.wav"); // 사용시에는 개별 폴더로 변경할 것
+		//프로젝트폴더에 음원 추가해야한다.
+		bgmArray[0] = new File("Lazy_Rock.wav"); 
 		bgmArray[1] = new File("Lucid_Dreamer.wav");
 		bgmArray[2] = new File("Fond_Memories.wav");
 		bgmArray[3] = new File("If_I_Had_a_Chicken.wav");
@@ -214,7 +210,7 @@ public class LogInWindow extends JFrame implements ActionListener{
 			clip.start();
 			
 		} catch (Exception e) {
-			System.out.println("err : " + e);
+			System.out.println("error : " + e);
 		}
 		
 	}
