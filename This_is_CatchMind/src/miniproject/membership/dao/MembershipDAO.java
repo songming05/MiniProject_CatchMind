@@ -359,5 +359,86 @@ public class MembershipDAO {
 		return resultPassword;
 	}
 
+	public int getLoginCount() {
+		int result = 0;
+		String sql = "select * from membership where login = ?";
+		
+		Connection conn=null;
+		PreparedStatement prps=null;
+		ResultSet rs=null;
+		try {
+			conn=getConnection();
+			prps = conn.prepareStatement(sql);
+			prps.setInt(1, 1);
+			rs = prps.executeQuery();
+			
+			if(rs.next()) {
+				result++;
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if(rs!=null) rs.close();
+				if(prps!=null) prps.close();
+				if(conn!=null) conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}		
+		return result;
+	}
+
+	public void setLogin(String nickName) {
+		String sql = "update membership set login = 1 where name = ?";
+		
+		Connection conn=null;
+		PreparedStatement prps=null;
+		try {
+			conn=getConnection();
+			prps = conn.prepareStatement(sql);
+			prps.setString(1, nickName);
+			
+			prps.executeUpdate();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if(prps!=null) prps.close();
+				if(conn!=null) conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void scoreUpdate(String userID, int getScore) {
+		String sql = "update membership set total_score = total_score+? where id = ?";
+		
+		Connection conn=null;
+		PreparedStatement prps=null;
+		try {
+			conn=getConnection();
+			prps = conn.prepareStatement(sql);
+			prps.setInt(1, getScore);
+			prps.setString(2, userID);
+			
+			prps.executeUpdate();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if(prps!=null) prps.close();
+				if(conn!=null) conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		
+	}
+
 	
 }

@@ -8,6 +8,17 @@ public class waitingRoomUserDTO implements Serializable{
 	private String id;
 	private String name;
 	private int score;
+	private int indexNumber;
+	private Info command;
+	
+	public int getIndexNumber() {
+		return indexNumber;
+	}
+
+	public void setIndexNumber(int indexNumber) {
+		this.indexNumber = indexNumber;
+	}
+
 	public String getId() {
 		return id;
 	}
@@ -23,8 +34,7 @@ public class waitingRoomUserDTO implements Serializable{
 	public void setScore(int score) {
 		this.score = score;
 	}
-	private Info command;
-	
+
 	public Info getCommand() {
 		return command;
 	}

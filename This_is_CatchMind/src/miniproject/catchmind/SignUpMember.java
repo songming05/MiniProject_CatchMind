@@ -253,7 +253,7 @@ public class SignUpMember extends JFrame implements ActionListener{
 		MailSendManager mailSendManager = new MailSendManager(userEmail);
 		
 		certificationKey = mailSendManager.getCertificationKey();
-		if(certificationKey.length()<4) JOptionPane.showMessageDialog(this, "인증 메일이 발송되었습니다.");
+		if(certificationKey.length()>4) JOptionPane.showMessageDialog(this, "인증 메일이 발송되었습니다.");
 	}
 	
 	/*

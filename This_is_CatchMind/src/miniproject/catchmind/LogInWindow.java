@@ -170,7 +170,7 @@ public class LogInWindow extends JFrame implements ActionListener{
 				//대기실 창 생성!
 				WaitingRoomClient waitingroomclient = new WaitingRoomClient();
 				waitingroomclient.event();
-				//waitingroomclient.service(idnamescoreDTO);			
+				waitingroomclient.service(idnamescoreDTO);			
 				
 				this.setVisible(false);
 				this.dispose();

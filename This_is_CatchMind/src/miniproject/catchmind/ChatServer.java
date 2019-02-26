@@ -22,7 +22,6 @@ public class ChatServer {
 				chatServerList.add(handler);
 			}//while
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

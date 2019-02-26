@@ -12,6 +12,8 @@ public class ChatHandler extends Thread{
 	private ArrayList<catchmind_ShapDTO> shapeDTOList;
 	private ObjectInputStream chatHandlerOis;
 	private ObjectOutputStream chatHandlerOos;
+	private int ready; //★추가한내용
+	private int start; //★추가한내용
 	
 	public ChatHandler(Socket chatHandlerSocket,ArrayList<ChatHandler> chatHandlerList )throws IOException{
 		this.chatHandlerSocket=chatHandlerSocket;
@@ -29,29 +31,24 @@ public class ChatHandler extends Thread{
 			try {				
 				chatHandlerDTO=(ChatDTO)chatHandlerOis.readObject();
 				shapeDTOList = (ArrayList<catchmind_ShapDTO>) chatHandlerOis.readObject();
-				//System.out.println("채팅으로 핸들러는 읽었다.");
-				
-				//ChatDTO chatSendDTO= new ChatDTO();
 				
 				if(chatHandlerDTO.getCommand()==Info.JOIN) {
 					chatNickName=chatHandlerDTO.getNickName();		
-					ChatDTO chatSendDTO= new ChatDTO();
-					chatSendDTO.setCommand(Info.SEND);
-					chatSendDTO.setMessage("["+chatNickName+"]님이 입장하였습니다,  "+"매너채팅 하시길 바랍니다");
-					broadcast(chatSendDTO);
+					chatHandlerDTO.setCommand(Info.SEND);
+					chatHandlerDTO.setMessage("["+chatNickName+"]님이 입장하였습니다,  "+"매너채팅 하시길 바랍니다");
+					broadcast(chatHandlerDTO);
 					brodacast(shapeDTOList);
 				}
 				else if(chatHandlerDTO.getCommand()==Info.EXIT) {
 					chatHandlerList.remove(this);
-					ChatDTO chatSendDTO= new ChatDTO();
-					chatSendDTO.setCommand(Info.EXIT);
-					chatHandlerOos.writeObject(chatSendDTO);
+					chatHandlerDTO.setCommand(Info.EXIT);
+					chatHandlerOos.writeObject(chatHandlerDTO);
 					chatHandlerOos.writeObject(shapeDTOList);
 					chatHandlerOos.flush();
 					
-					chatSendDTO.setCommand(Info.SEND);
-					chatSendDTO.setMessage(chatNickName+"님이 퇴장하였습니다");
-					broadcast(chatSendDTO);
+					chatHandlerDTO.setCommand(Info.SEND);
+					chatHandlerDTO.setMessage(chatNickName+"님이 퇴장하였습니다");
+					broadcast(chatHandlerDTO);
 					brodacast(shapeDTOList);
 					
 					chatHandlerOos.close();
@@ -60,16 +57,42 @@ public class ChatHandler extends Thread{
 					break;
 					
 				}else if(chatHandlerDTO.getCommand()==Info.SEND) {
-					ChatDTO chatSendDTO= new ChatDTO();
-					chatSendDTO.setCommand(Info.SEND);
-					chatSendDTO.setMessage("["+chatNickName+"] "+chatHandlerDTO.getMessage());
-					broadcast(chatSendDTO);
+					chatHandlerDTO.setCommand(Info.SEND);
+					chatHandlerDTO.setNickName(chatNickName);
+					chatHandlerDTO.setMessage(chatHandlerDTO.getMessage());
+					broadcast(chatHandlerDTO);
 					brodacast(shapeDTOList);
 					
 				} else if(chatHandlerDTO.getCommand()==Info.WAIT) {
-					ChatDTO chatSendDTO= new ChatDTO();
-					System.out.println("리스트로 핸들러는 읽었다.");
-					broadcast(chatSendDTO);
+					broadcast(chatHandlerDTO);
+					brodacast(shapeDTOList);
+				}
+				else if(chatHandlerDTO.getCommand()==Info.READY) {//★추가한 내용
+					start = 0;
+					ready = chatHandlerDTO.getReadyCount();
+					chatHandlerDTO.setReadyCount(ready);
+					chatHandlerDTO.setCommand(Info.READY);
+					chatHandlerDTO.setMessage(ready+"명이 준비하였습니다");
+					chatHandlerDTO.setReadyCount(ready);
+					if(ready == 4) {
+						chatHandlerDTO.setCommand(Info.READY);
+						ready = 0;
+					}
+					broadcast(chatHandlerDTO);
+					brodacast(shapeDTOList);
+				}
+				else if(chatHandlerDTO.getCommand()==Info.START) {//★추가한 내용
+					start = chatHandlerDTO.getStartCount();
+					chatHandlerDTO.setStartCount(start);
+					chatHandlerDTO.setCommand(Info.START);
+					ready = 0;
+					broadcast(chatHandlerDTO);
+					brodacast(shapeDTOList);
+				}else if(chatHandlerDTO.getCommand() == Info.ANSWER) {//★추가한 내용
+					chatHandlerDTO.setCommand(Info.ANSWER);
+					chatHandlerDTO.setNickName(chatNickName);
+					chatHandlerDTO.setMessage(chatHandlerDTO.getMessage());
+					broadcast(chatHandlerDTO);
 					brodacast(shapeDTOList);
 				}
 				
