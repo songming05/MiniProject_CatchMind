@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Panel;
 import java.awt.Toolkit;
@@ -12,12 +13,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import miniproject.certificate.MailSendManager;
@@ -37,7 +41,10 @@ public class SignUpMember extends JFrame implements ActionListener{
 	private boolean duplicateCheck = true,//true: 중복존재, false:사용가능
 					certificateCheck; //true: 인증키 일치(사용가능), false: 사용불가
 	private String certificationKey;
-	
+	//
+	private ImageIcon signImage;//★★
+	private JScrollPane signScrollPane;//★★
+	//
 	public SignUpMember() {
 		super("회원가입");
 		
@@ -51,69 +58,89 @@ public class SignUpMember extends JFrame implements ActionListener{
 		
 		Container container = this.getContentPane();
 		container.setLayout(null);
-		Panel leftP, IDP, passwordP, confirmPasswordP, nameP, addressP, 
+		JPanel leftP, IDP, passwordP, confirmPasswordP, nameP, addressP, 
 				phoneP, emailP, certificateP;
-		Panel rightP, IDRowP, passwordRowP, confirmPasswordRowP, nameRowP, addressRowP, 
+		JPanel rightP, IDRowP, passwordRowP, confirmPasswordRowP, nameRowP, addressRowP, 
 				phoneRowP, emailRowP, certificateRowP;
-		Panel buttonRowP;
+		JPanel buttonRowP;
 		
-		leftP = new Panel(new GridLayout(8,1));
-		IDP = new Panel(new FlowLayout(FlowLayout.LEFT));
-		passwordP = new Panel(new FlowLayout(FlowLayout.LEFT));
-		confirmPasswordP = new Panel(new FlowLayout(FlowLayout.LEFT));
-		nameP = new Panel(new FlowLayout(FlowLayout.LEFT));
-		addressP = new Panel(new FlowLayout(FlowLayout.LEFT));
-		phoneP = new Panel(new FlowLayout(FlowLayout.LEFT));
-		emailP = new Panel(new FlowLayout(FlowLayout.LEFT));
-		certificateP = new Panel(new FlowLayout(FlowLayout.LEFT));
+		leftP = new JPanel(new GridLayout(8,1));
+		IDP = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		passwordP = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		confirmPasswordP = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		nameP = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		addressP = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		phoneP = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		emailP = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		certificateP = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		
-		rightP = new Panel(new GridLayout(8, 1));
-		IDRowP = new Panel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-		passwordRowP = new Panel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-		confirmPasswordRowP = new Panel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-		nameRowP = new Panel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-		addressRowP = new Panel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-		phoneRowP = new Panel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-		emailRowP = new Panel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-		certificateRowP = new Panel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+		rightP = new JPanel(new GridLayout(8, 1));
+		IDRowP = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+		passwordRowP = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+		confirmPasswordRowP = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+		nameRowP = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+		addressRowP = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+		phoneRowP = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+		emailRowP = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+		certificateRowP = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
 		
-		buttonRowP = new Panel(new GridLayout(1, 2, 20, 10));
+		buttonRowP = new JPanel(new GridLayout(1, 2, 20, 10));
 		
-				
+		//		
 		IDP.add(idL);
+		IDP.setOpaque(false);
 		passwordP.add(passwordL);
+		passwordP.setOpaque(false);
 		confirmPasswordP.add(confirmPasswordL);
+		confirmPasswordP.setOpaque(false);
 		nameP.add(nameL);
+		nameP.setOpaque(false);
 		addressP.add(addressL);
+		addressP.setOpaque(false);
 		phoneP.add(phoneNumberL);
+		phoneP.setOpaque(false);
 		emailP.add(emailAddressL);
+		emailP.setOpaque(false);
 		certificateP.add(certificateL);
+		certificateP.setOpaque(false);
 				
 		IDRowP.add(idT);
 		IDRowP.add(duplicationB);
+		IDRowP.setOpaque(false);
 		passwordRowP.add(passwordT);
 		passwordRowP.add(new JLabel("(5~12자 이내로 입력)"));
+		passwordRowP.setOpaque(false);
 		confirmPasswordRowP.add(confirmPasswordT);
 		confirmPasswordRowP.add(new JLabel("(한 번 더 입력)"));
+		confirmPasswordRowP.setOpaque(false);
 		nameRowP.add(nameT);
 		nameRowP.add(new JLabel("(한글 최대 6자리 가능)"));
+		nameRowP.setOpaque(false);
 		addressRowP.add(addressT);
+		addressRowP.setOpaque(false);
 		phoneRowP.add(phoneNumberT1);
 		phoneRowP.add(new JLabel(" -  "));
 		phoneRowP.add(phoneNumberT2);
 		phoneRowP.add(new JLabel(" -  "));
 		phoneRowP.add(phoneNumberT3);
+		phoneRowP.setOpaque(false);
 		emailRowP.add(emailAddressT);
 		emailRowP.add(new JLabel("@"));
 		emailRowP.add(mailSelect);
+		emailRowP.setOpaque(false);
 		certificateB.setSize(getPreferredSize());
 		certificateRowP.add(certificateB);
 		certificateRowP.add(new JLabel("      인증번호 :"));
 		certificateRowP.add(certificateT);
+		certificateRowP.setOpaque(false);
 		
 		leftP.setBounds(20, 20, 100, 300);	
 		rightP.setBounds(120, 20, 250, 300);
 		buttonRowP.setBounds(20, 330, 350, 50);
+		leftP.setOpaque(false);
+		rightP.setOpaque(false);
+		buttonRowP.setOpaque(false);
+		
 		
 		leftP.add(IDP);
 		leftP.add(passwordP);
@@ -135,14 +162,37 @@ public class SignUpMember extends JFrame implements ActionListener{
 	
 		buttonRowP.add(cancelB);
 		buttonRowP.add(registerB);
+		buttonRowP.setBackground(new Color(230,255,255));
 				
 		container.add(leftP);
 		container.add(rightP);
 		container.add(buttonRowP);
 		
-		Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+		
+		
+		signImage = new ImageIcon("sign.png");
+        JPanel signback = new JPanel() {
+            public void paintComponent(Graphics g) {
+                g.drawImage(signImage.getImage(), 0, 0, null);
+                setOpaque(false);
+                super.paintComponent(g);
+            }     
+        };
+        signback.setLayout(null);
+       
+        signback.add(leftP);
+        signback.add(rightP);
+        signback.add(buttonRowP);
+       
+        signScrollPane = new JScrollPane(signback);
+        setContentPane(signScrollPane);
+
+        //
+        
+        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
 		int frameW = 400;
 		int frameH = 420;
+		
 		setBounds((dimension.width/2-frameW/2), (dimension.height/2-frameH/2), frameW, frameH);
 		setResizable(false);
 		setVisible(true);
@@ -343,5 +393,8 @@ public class SignUpMember extends JFrame implements ActionListener{
 		}
 		
 	}
+//	public static void main(String[] args) {
+//		SignUpMember s = new SignUpMember();
+//	}
 
 }

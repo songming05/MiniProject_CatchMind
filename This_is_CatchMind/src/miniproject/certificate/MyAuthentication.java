@@ -8,7 +8,7 @@ public class MyAuthentication extends Authenticator{
 	  
     public MyAuthentication(){  //생성자를 통해 구글 ID/PW 인증
           
-        String id = "songming05";       // 구글 ID
+        String id = "아이디";       // 구글 ID
         String pw = "비밀번호";       // 구글 비밀번호
   
         // ID와 비밀번호를 입력한다.

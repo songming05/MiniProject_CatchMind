@@ -1,28 +1,27 @@
 package miniproject.catchmind;
 
 import java.awt.Color;
-import java.awt.Container;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -31,6 +30,7 @@ import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 
 import miniproject.membership.dao.MembershipDAO;
+import miniproject.roomdao.RoomDAO;
 
 
 
@@ -50,12 +50,15 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 	private int readyCount=0; //추가한거
 	private int startCount=0; //★추가한 내용
 	private boolean timestop=true;//추가한거
-	private static int ii;//추가한거
+	private static int ii=1;//추가한거
 	private String[] Quiz = {"고양이", "개", "태양", "달", "컴퓨터"};//★추가한 내용
 	int[] list = new int[5];//★추가한 내용
-	private JProgressBar bar = new JProgressBar(JProgressBar.HORIZONTAL,0,120); //추가한거
+	private JProgressBar bar = new JProgressBar(JProgressBar.HORIZONTAL,0,15); //추가한거
 	private int score;
-	
+	//
+	private ImageIcon chatImage;//
+	private JScrollPane chatScrollPane;//
+	//
 	private int x1, y1, x2, y2; //좌표
 	private JButton[] btn; //색깔 버튼
 	private JRadioButton thinB, thickB; //선 굵기
@@ -65,11 +68,25 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 	private ArrayList<catchmind_ShapDTO> shapeDTOList;
 	private ArrayList<catchmind_ShapDTO> cloneList;
 	private String answer;
-	
-
+	private WaitingRoomClient waitingRoomClient;
 	private int colorNum; //색깔 기준
 	
-	public ChatFrame(waitingRoomRCreateDTO waitingroomrcreateDTO, waitingRoomUserDTO waitingroomuserDTO_send ) {
+	//------------방정보 가져오는거 등록---------------
+	private ArrayList<waitingRoomRCreateDTO> RoomData;
+	private String roomName;
+	private String roomPass;
+	private String owner;
+	private int person;
+	private int roomNumber, currentPerson, roomSeq;
+
+	
+	public ChatFrame(WaitingRoomClient waitingRoomClient) {
+		this();
+		this.waitingRoomClient = waitingRoomClient;
+		
+	}
+	
+	public ChatFrame() {
 			//ObjectOutputStream oos, ObjectInputStream ois){
 		super("이것은 그림인가 낙서인가 이때까지 이런 게임은 없었다.");
 		//this.chatSocket=chatSoket;
@@ -77,51 +94,10 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 		//this.ois = ois;
 		
 		//System.out.println("chatFrame"+waitingroomuserDTO.getName());
-		String chatServerIp="localhost";
-	
-
-		try {
-			
-			chatSocket =new Socket(chatServerIp,9500);
-			oos = new ObjectOutputStream(chatSocket.getOutputStream());
-			ois = new ObjectInputStream(chatSocket.getInputStream());
-			
-			WaitingRoomChattingDTO waitingroomchattingDTO = new WaitingRoomChattingDTO();
-			waitingroomchattingDTO.setCommand(Info.WAIT);
-			waitingRoomUserDTO waitingroomuserDTO_1 = new waitingRoomUserDTO();
-			waitingroomuserDTO_1.setCommand(Info.WAIT);
-			waitingRoomRCreateDTO waitingroomrcreateDTO_1 = new waitingRoomRCreateDTO();
-			waitingroomrcreateDTO_1.setCommand(Info.WAIT);
-			ChatDTO chatDTO = new ChatDTO();
-			chatDTO.setCommand(Info.JOIN);
-			//chatDTO.setCommand(Info.WAIT);
-			GameUserDTO gameuserDTO = new GameUserDTO();
-			//gameuserDTO.setCommand(Info.WAIT);
-			gameuserDTO.setCommand(Info.JOIN);
-			gameuserDTO.setName(waitingroomuserDTO_send.getName());
-			gameuserDTO.setPoint(waitingroomuserDTO_send.getScore());
-			chatNickName = waitingroomuserDTO_send.getName();
-			
-			oos.writeObject(waitingroomchattingDTO);
-			oos.writeObject(waitingroomuserDTO_1);
-			oos.writeObject(waitingroomrcreateDTO_1);
-			oos.writeObject(chatDTO);
-			oos.writeObject(cloneList);
-			oos.writeObject(gameuserDTO);
-			oos.flush();
-			
-			
-			
-		} catch (UnknownHostException e2) {
-			e2.printStackTrace();
-		} catch (IOException e2) {
-			e2.printStackTrace();
-		}
-
 		
 		
-		Thread chatThread =new Thread(this);
-		chatThread.start();
+		
+
 		
 		setLayout(null);
 		
@@ -157,10 +133,6 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 		bar.setBounds(1050, 100, 100, 30);
 		bar.setVisible(false);
 		
-		add(answerB);
-		add(clearB);
-		add(answerT);
-		
 		btn = new JButton[6];
 		String[] title = {"검정", "빨강", "초록", "파랑", "노랑", "분홍"};
 		Color[] color = {Color.BLACK, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.MAGENTA};
@@ -178,8 +150,10 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 		//선 굵기
 		thinB = new JRadioButton("얇은", true);
 		thickB = new JRadioButton("굵은");
-		thinB.setBounds(50, 700, 60, 60);
-		thickB.setBounds(150, 700, 60, 60);
+		thinB.setBounds(50, 700, 60, 30);
+		thickB.setBounds(150, 700, 60, 30);
+		thinB.setBackground(new Color(230,255,255));
+		thickB.setBackground(new Color(230,255,255));
 		
 		//JRadioButton 그룹
 		ButtonGroup group = new ButtonGroup();
@@ -192,30 +166,47 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 		//리스트
 		sendList = new ArrayList<catchmind_ShapDTO>();
 		serverInfoList = new ArrayList<catchmind_ShapDTO>();
+		RoomData = new ArrayList<waitingRoomRCreateDTO>();
 		
-		add(can);
-		
-		for(int i=0; i<title.length; i++) {
-			add(btn[i]);
-		}
-		
-		add(thickB);
-		add(thinB);
-		
-		answerB.addActionListener(this); //★추가한 내용
-		
-		Container containerC =this.getContentPane();
-		containerC.add(chatSend);
-		containerC.add("Center", scroll);
-		containerC.add(playerList);
-		containerC.add(exitB);
-		containerC.add(sendB);
-		containerC.add(readyB);
-		containerC.add(startB);
-		containerC.add(bar);//추가한거
 		bar.setStringPainted(true);//추가한거
 		bar.setString("0초");//추가한거
 		
+		//
+		chatImage = new ImageIcon("game.jpg");
+        JPanel background = new JPanel() {
+            public void paintComponent(Graphics g) {
+                g.drawImage(chatImage.getImage(), 0, 0, null);
+                setOpaque(false);
+                super.paintComponent(g);
+            }     
+        };
+        background.setLayout(null);
+       
+        
+        background.add(answerB);
+        background.add(clearB);
+        background.add(answerT);
+        
+        background.add(can);
+        background.add(thickB);
+        background.add(thinB);
+        
+        background.add(chatSend);
+        background.add("Center", scroll);
+        background.add(playerList);
+        background.add(exitB);
+        background.add(sendB);
+        background.add(readyB);
+        background.add(startB);
+        background.add(bar);
+        for(int i=0; i<title.length; i++) {
+        	background.add(btn[i]);
+		}
+        chatScrollPane = new JScrollPane(background);
+        setContentPane(chatScrollPane);
+        setResizable(false);
+		//
+        
 		setBounds(700,100, 1200, 800);
 		setVisible(true);
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -238,12 +229,15 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 		
 		this.addWindowListener(new WindowAdapter(){
 			@Override
-			public void windowClosing(WindowEvent e){				
+			public void windowClosing(WindowEvent e){
+				MembershipDAO membershipDAO = MembershipDAO.getInstance();
+				membershipDAO.scoreUpdate(chatNickName, score);
 				try {
 					if(oos==null||ois==null)dispose();
 						WaitingRoomChattingDTO waitingroomchattingDTO = new WaitingRoomChattingDTO();
 						waitingRoomUserDTO waitingroomuserDTO = new waitingRoomUserDTO();
 						waitingRoomRCreateDTO waitingroomrcreateDTO = new waitingRoomRCreateDTO();
+						waitingroomrcreateDTO.setRoomName(roomName);
 						ChatDTO chatdto=new ChatDTO();
 						chatdto.setCommand(Info.EXIT);
 						GameUserDTO gameuserDTO = new GameUserDTO();
@@ -287,6 +281,7 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 					waitingroomuserDTO.setCommand(Info.WAIT);
 					waitingRoomRCreateDTO waitingroomrcreateDTO = new waitingRoomRCreateDTO();
 					waitingroomrcreateDTO.setCommand(Info.WAIT);
+					waitingroomrcreateDTO.setRoomName(roomName);
 					ChatDTO chatDTO_send = new ChatDTO();
 					chatDTO_send.setCommand(Info.WAIT);
 					GameUserDTO gameuserDTO = new GameUserDTO();
@@ -327,6 +322,7 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 					waitingroomuserDTO.setCommand(Info.WAIT);
 					waitingRoomRCreateDTO waitingroomrcreateDTO = new waitingRoomRCreateDTO();
 					waitingroomrcreateDTO.setCommand(Info.WAIT);
+					waitingroomrcreateDTO.setRoomName(roomName);
 					ChatDTO chatDTO_send = new ChatDTO();
 					chatDTO_send.setCommand(Info.WAIT);
 					GameUserDTO gameuserDTO = new GameUserDTO();
@@ -371,6 +367,10 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 		GameUserDTO gameuserDTO = new GameUserDTO();
 		
 		if(e.getSource()==chatSend || e.getSource()==sendB) {
+			waitingroomchattingDTO.setCommand(Info.WAIT);
+			waitingroomuserDTO.setCommand(Info.WAIT);
+			waitingroomrcreateDTO.setCommand(Info.WAIT);
+			waitingroomrcreateDTO.setRoomName(roomName);
 			chatDTO.setNickName(chatNickName);
 			chatDTO.setCommand(Info.SEND);
 			chatDTO.setMessage(chatMsg);
@@ -390,21 +390,47 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 			chatSend.setText("");
 			
 		}else if(e.getSource()==exitB||chatMsg.toLowerCase().equals("exit")) {
-			chatDTO.setCommand(Info.EXIT);
+//			chatDTO.setCommand(Info.EXIT);
+//			MembershipDAO membershipDAO = MembershipDAO.getInstance();
+//			membershipDAO.scoreUpdate(chatNickName, score);
+//			try {
+//				chatDTO.setCommand(Info.EXIT);
+//				
+//				oos.writeObject(waitingroomchattingDTO);
+//				oos.writeObject(waitingroomuserDTO);
+//				oos.writeObject(waitingroomrcreateDTO);
+//				oos.writeObject(chatDTO);
+//				oos.writeObject(cloneList);
+//				oos.writeObject(gameuserDTO);
+//				oos.flush();
+//				
+//			} catch (IOException e1) {
+//				e1.printStackTrace();
+//			}
+			MembershipDAO membershipDAO = MembershipDAO.getInstance();
+			membershipDAO.scoreUpdate(chatNickName, score);
 			try {
-				chatDTO.setCommand(Info.EXIT);
-				
-				oos.writeObject(waitingroomchattingDTO);
-				oos.writeObject(waitingroomuserDTO);
-				oos.writeObject(waitingroomrcreateDTO);
-				oos.writeObject(chatDTO);
-				oos.writeObject(cloneList);
-				oos.writeObject(gameuserDTO);
-				oos.flush();
-				
+				if(oos==null||ois==null)dispose();
+					waitingroomchattingDTO = new WaitingRoomChattingDTO();
+					waitingroomuserDTO = new waitingRoomUserDTO();
+					waitingroomrcreateDTO = new waitingRoomRCreateDTO();
+					waitingroomrcreateDTO.setRoomName(roomName);
+					ChatDTO chatdto=new ChatDTO();
+					chatdto.setCommand(Info.EXIT);
+					gameuserDTO = new GameUserDTO();
+					
+					oos.writeObject(waitingroomchattingDTO);
+					oos.writeObject(waitingroomuserDTO);
+					oos.writeObject(waitingroomrcreateDTO);
+					oos.writeObject(chatdto);
+					oos.writeObject(sendList);
+					oos.writeObject(gameuserDTO);
+					oos.flush();
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
+			
+			
 		
 		}else if(e.getSource() == answerT || e.getSource() == answerB){//★추가한 내용		
 			
@@ -413,6 +439,7 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 				waitingroomchattingDTO.setCommand(Info.WAIT);
 				waitingroomuserDTO.setCommand(Info.WAIT);
 				waitingroomrcreateDTO.setCommand(Info.WAIT);
+				waitingroomrcreateDTO.setRoomName(roomName);
 				chatDTO.setCommand(Info.ANSWER);
 				chatDTO.setNickName(chatNickName);
 				chatDTO.setMessage("["+chatNickName+"] 님 정답입니다");
@@ -438,6 +465,7 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 			waitingroomchattingDTO.setCommand(Info.WAIT);
 			waitingroomuserDTO.setCommand(Info.WAIT);
 			waitingroomrcreateDTO.setCommand(Info.WAIT);
+			waitingroomrcreateDTO.setRoomName(roomName);
 			chatDTO.setCommand(Info.READY);
 			chatDTO.setMessage(chatMsg);
 			chatDTO.setScore(score);
@@ -494,6 +522,7 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 			waitingroomchattingDTO.setCommand(Info.WAIT);
 			waitingroomuserDTO.setCommand(Info.WAIT);
 			waitingroomrcreateDTO.setCommand(Info.WAIT);
+			waitingroomrcreateDTO.setRoomName(roomName);
 			chatDTO.setCommand(Info.START);
 			chatDTO.setMessage(answerT.getText());
 			gameuserDTO.setCommand(Info.WAIT);
@@ -518,24 +547,24 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 			Thread start = new Thread(new Runnable() {
 				catchmind_Canvas can = ChatFrame.this.can;
 				@Override
-				public void run() {
-					for(int i=ii;i<=119;i++) {
+				public void run() {//
+					for(int i=ii;i<=15;i++) {
 						if(!timestop) break;
 						try {
-							Thread.sleep(100);//원래는 1000
+							Thread.sleep(1000);//원래는 1000
 								
 						}catch(InterruptedException ee) {}
 						bar.setValue(i);
 						ii=i;
-						bar.setString(i+1+"초");
-						if(ii==119) {
-							ii=0;
-							bar.setString(ii+"초");
+						bar.setString(i+"초");
+						if(ii==15) {
+							ii=1;
+							bar.setString(ii-1+"초");
 							startB.setEnabled(true);
 						}
 					}
 					can.setEnabled(false);
-				}
+				}//
 			});
 			start.start();
 		}else if(e.getSource() == clearB) {
@@ -575,81 +604,128 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 				serverInfoList = (ArrayList<catchmind_ShapDTO>) ois.readObject();
 				gameuserDTO = (GameUserDTO) ois.readObject();
 				
-				if(serverInfoList != null)can.repaint();
+				System.out.println("드레그시 받아온waitingroomrcreateDTO.getname"+ waitingroomrcreateDTO.getRoomName());
 				
+				if(waitingroomrcreateDTO.getRoomName().equals(roomName)) {
+					if(serverInfoList != null) can.repaint();
+				}
+
+				
+				
+				
+				//--------------------------------chatDTO -----------------------------------
 				if(chatDTO.getCommand()==Info.EXIT){
 					
-					//oos.close();
-					//oos.close();
-					//chatSocket.close();
-					dispose();
+					if(waitingroomrcreateDTO.getRoomName().equals(roomName)){
+						
+						waitingroomrcreateDTO.setCurrentPerson(currentPerson);
+						RoomDAO roomDAO = RoomDAO.getInstance();
+						roomDAO.minusPerson(waitingroomrcreateDTO, roomSeq);
+						
+						int currentPerson = roomDAO.getCurrentPerson(waitingroomrcreateDTO);
+						if(currentPerson==0) {
+							//방 목록에서 제거, DB LimitPerson=0 변경
+							roomDAO.initLimitPerson(waitingroomrcreateDTO, roomSeq);
+						}
+						this.setVisible(false);
+						dispose();
+						waitingRoomClient.setVisible(true);
+					}
 					
 					//System.exit(0);
 				}else if(chatDTO.getCommand()==Info.SEND){
 					
-					chatPrint.append(chatDTO.getMessage()+"\n");
-					int chatPos = chatPrint.getText().length();
-					chatPrint.setCaretPosition(chatPos);//스크롤바 위치 계속요청
+					if(waitingroomrcreateDTO.getRoomName().equals(roomName)){
+						chatPrint.append(chatDTO.getMessage()+"\n");
+						int chatPos = chatPrint.getText().length();
+						chatPrint.setCaretPosition(chatPos);//스크롤바 위치 계속요청
+					}
+	
+
 					
 				}else if(chatDTO.getCommand()==Info.READY) {//★추가한 내용
-					
-					readyCount = chatDTO.getReadyCount();
-					System.out.println(readyCount);
-					
-					if(chatDTO.getReadyCount() == 2) {
-						startB.setEnabled(true);
-						readyB.setEnabled(false);
+					if(waitingroomrcreateDTO.getRoomName().equals(roomName)){
+						readyCount = chatDTO.getReadyCount();
+						System.out.println(readyCount);
+						
+						if(chatDTO.getReadyCount() == 2 && owner.equals("방장")) {
+							startB.setEnabled(true);
+							readyB.setEnabled(false);
+						}
+						
+						System.out.println(chatDTO.getReadyCount());
+						chatPrint.append(chatDTO.getMessage()+"\n");
+	
+						int chatPos = chatPrint.getText().length();
+						chatPrint.setCaretPosition(chatPos);
 					}
-					
-					System.out.println(chatDTO.getReadyCount());
-					chatPrint.append(chatDTO.getMessage()+"\n");
-
-					int chatPos = chatPrint.getText().length();
-					chatPrint.setCaretPosition(chatPos);
 					
 				}else if(chatDTO.getCommand()==Info.START) {//★추가한 내용
-					readyB.setEnabled(false);
-					answer = chatDTO.getMessage();
-					startCount = chatDTO.getStartCount();
-					System.out.println(startCount);
-					if(chatDTO.getStartCount() == 5) {
-						startB.setEnabled(false);
-						readyB.setEnabled(true);
+					if(waitingroomrcreateDTO.getRoomName().equals(roomName)){
+						readyB.setEnabled(false);
+						answer = chatDTO.getMessage();
+						startCount = chatDTO.getStartCount();
+						System.out.println(startCount);
+						if(chatDTO.getStartCount() == 5) {
+							startB.setEnabled(false);
+							readyB.setEnabled(true);
+						}
 					}
 				}else if(chatDTO.getCommand() == Info.ANSWER) {
-					chatPrint.append(chatDTO.getMessage()+"\n");
-					if(chatDTO.getNickName().equals(chatNickName)) {
-						score +=20;
-						System.out.println("점수올랐습니다");
-					}	
-				}
-				if(startCount == 5) {
-					startB.setEnabled(false);
-					readyB.setEnabled(true);
+					if(waitingroomrcreateDTO.getRoomName().equals(roomName)){
+						chatPrint.append(chatDTO.getMessage()+"\n");
+						
+							if(chatDTO.getNickName().equals(chatNickName)) {
+								score +=20;
+								System.out.println("점수올랐습니다");
+							}	
+					}
+						if(startCount == 5) {
+							startB.setEnabled(false);
+							readyB.setEnabled(true);
+						}
 				}
 				
+				//--------------대기방 유저 목록  ------------
 				if(waitingroomuserDTO.getCommand()==Info.SEND) {
 					chatNickName =waitingroomuserDTO.getName();
 					point = waitingroomuserDTO.getScore();
 				}
 				
+				
+				//--------------------------방만들기 ------------------------
 				if(waitingroomrcreateDTO.getCommand()==Info.CREATE) {
 					
+				}else if(waitingroomrcreateDTO.getCommand()==Info.WAIT) {
+					//System.out.println("Info.WAIT에서의 "+waitingroomrcreateDTO.getRoomName());
+					//if(waitingroomrcreateDTO.getRoomName().equals(roomName))chatModel.addElement(gameuserDTO);
+					//방이름이 똑같은 방에만 추가
+
 				}
 				
 				
 	
-	
+				//-----------------gameuserDTO-------------------------------
 				if(gameuserDTO.getCommand()==Info.JOIN) {
-					System.out.println(gameuserDTO.getOwner());
-					if(gameuserDTO.getOwner().equals("방장")){
+					//System.out.println(gameuserDTO.getOwner());
+					//System.out.println("waitingroomrcreateDTO  : "+waitingroomrcreateDTO.getRoomName());
+					//System.out.println("룸네임roomName  :"+roomName);
+					if(waitingroomrcreateDTO.getRoomName().equals(roomName))chatModel.addElement(gameuserDTO);
+
+					if(owner.equals("방장")){
 						can.setEnabled(true);
-					}
-					if(gameuserDTO.getOwner().equals("방장")){
 						bar.setVisible(true);
 					}
-					
-					chatModel.addElement(gameuserDTO);
+
+//					
+//					if(RoomData == null) {
+//						chatModel.addElement(gameuserDTO);
+//					}else {
+//						for(int i =0;i<RoomData.size();i++) {
+//							if(RoomData.get(i).getRoomName().equals(roomName))chatModel.addElement(gameuserDTO);
+//						}
+//					}
+//					
 					
 				}else if(gameuserDTO.getCommand()==Info.WAIT) {
 				}
@@ -754,8 +830,72 @@ class ChatFrame extends JFrame implements ActionListener,Runnable{
 	public static void main(String[] args) 
 	{
 		ChatFrame chatframe= new ChatFrame();
-		chatframe.chatIp();
+		chatframe.service();
 	}
-	*/
+*/
+	
+	public void service(waitingRoomRCreateDTO waitingroomrcreateDTO, waitingRoomUserDTO waitingroomuserDTO_send) {
+	//public void service() {
+		
+		String chatServerIp="192.168.51.79";
+		try {
+		chatSocket =new Socket(chatServerIp, 9700);
+		oos = new ObjectOutputStream(chatSocket.getOutputStream());
+		ois = new ObjectInputStream(chatSocket.getInputStream());
+		
+		//방정보 받아오기 
+		roomSeq = waitingroomrcreateDTO.getRoomSeq();
+		roomName = waitingroomrcreateDTO.getRoomName();	// 대기룸에서 방정보 획득
+		System.out.println("chat 서비스 생성시roomName"+roomName);
+		
+		roomPass = waitingroomrcreateDTO.getRoomPass();
+		owner = waitingroomrcreateDTO.getOwner();
+		person = waitingroomrcreateDTO.getPerson();
+		roomNumber = waitingroomrcreateDTO.getRoomNumber();
+		currentPerson = waitingroomrcreateDTO.getCurrentPerson();
+		
+		WaitingRoomChattingDTO waitingroomchattingDTO = new WaitingRoomChattingDTO();
+		waitingroomchattingDTO.setCommand(Info.WAIT);
+		waitingRoomUserDTO waitingroomuserDTO_1 = new waitingRoomUserDTO();
+		waitingroomuserDTO_1.setCommand(Info.WAIT);
+		
+		waitingRoomRCreateDTO waitingroomrcreateDTO_1 = new waitingRoomRCreateDTO();
+		waitingroomrcreateDTO_1.setCommand(Info.JOIN);
+		waitingroomrcreateDTO_1.setRoomName(waitingroomrcreateDTO.getRoomName());
+		waitingroomrcreateDTO_1.setRoomPass(roomPass);
+		waitingroomrcreateDTO_1.setOwner(waitingroomrcreateDTO.getOwner());
+		waitingroomrcreateDTO_1.setPerson(person);
+		waitingroomrcreateDTO_1.setRoomNumber(roomNumber);
+		
+		ChatDTO chatDTO = new ChatDTO();
+		chatDTO.setCommand(Info.JOIN);
+		//chatDTO.setCommand(Info.WAIT);
+		GameUserDTO gameuserDTO = new GameUserDTO();
+		//gameuserDTO.setCommand(Info.WAIT);
+		gameuserDTO.setCommand(Info.JOIN);
+		gameuserDTO.setName(waitingroomuserDTO_send.getName());
+		gameuserDTO.setPoint(waitingroomuserDTO_send.getScore());
+		chatNickName = waitingroomuserDTO_send.getName();
+		
+		oos.writeObject(waitingroomchattingDTO);
+		oos.writeObject(waitingroomuserDTO_1);
+		oos.writeObject(waitingroomrcreateDTO_1);
+		oos.writeObject(chatDTO);
+		oos.writeObject(cloneList);
+		oos.writeObject(gameuserDTO);
+		oos.flush();
+
+		
+		} catch (UnknownHostException e2) {
+			e2.printStackTrace();
+		} catch (IOException e2) {
+			e2.printStackTrace();
+		}
+
+		
+		
+		Thread chatThread =new Thread(this);
+		chatThread.start();
+	}
 }
 

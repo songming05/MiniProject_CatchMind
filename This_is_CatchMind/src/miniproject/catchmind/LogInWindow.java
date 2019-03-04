@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Panel;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -12,7 +14,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -23,8 +27,10 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import miniproject.membership.dao.MembershipDAO;
@@ -36,7 +42,11 @@ public class LogInWindow extends JFrame implements ActionListener{
 	private JButton cancelB, joinB, loginB;
 	private JRadioButton findIDB, findPasswordB;
 	
+	private ImageIcon icon;//
+	private JScrollPane scrollPane;//
+	
 	public static void main(String[] args) {
+		
 		LogInWindow logInWindow = new LogInWindow();
 		while(true) {
 			try {
@@ -65,15 +75,28 @@ public class LogInWindow extends JFrame implements ActionListener{
 		
 		setLayout(null);
 		Container container = this.getContentPane();
-		Panel labelP, textP, loginP, findID_PasswordP;
-		labelP = new Panel(new GridLayout(2,1,5,10));
-		textP = new Panel(new GridLayout(2,1,5,20));
-		loginP = new Panel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-		findID_PasswordP =  new Panel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-		labelP.setBounds(20, 20, 100, 80);		
+		JPanel labelP, textP, loginP, findID_PasswordP;
+		labelP = new JPanel(new GridLayout(2,1,5,10));
+		textP = new JPanel(new GridLayout(2,1,5,20));
+		loginP = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+		findID_PasswordP =  new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+		labelP.setBounds(20, 20, 100, 80);
+		labelP.setOpaque(false);
 		textP.setBounds(120, 20, 150, 80);
-		loginP.setBounds(20, 120, 260, 40);
+		loginP.setBounds(20, 120, 250, 40);
+		loginP.setOpaque(false);
 		findID_PasswordP.setBounds(20, 160, 250, 30);
+		
+		
+		labelP.setBackground(new Color(230,255,255));
+		labelP.setOpaque(false);
+		textP.setBackground(new Color(230,255,255));
+		textP.setOpaque(false);
+		loginP.setBackground(new Color(230,255,255));
+		loginP.setOpaque(false);
+		findID_PasswordP.setBackground(new Color(230,255,255));
+		findID_PasswordP.setOpaque(false);
+		
 		
 		labelP.add(idL);
 		labelP.add(passwordL);
@@ -90,15 +113,37 @@ public class LogInWindow extends JFrame implements ActionListener{
 		container.add(loginP);
 		container.add(findID_PasswordP);
 		
+		
 		//이미지 넣을 수 있으면 넣자
 		Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
 		int frameW = 300;
 		int frameH = 215;
 		setBounds((dimension.width/2-frameW/2), (dimension.height/2-frameH/2), frameW, frameH);
+		
+		icon = new ImageIcon("login.jpg");
+        JPanel background = new JPanel() {
+            public void paintComponent(Graphics g) {
+                g.drawImage(icon.getImage(), 0, 0, null);
+                setOpaque(false);
+                super.paintComponent(g);
+            }     
+        };
+        background.setLayout(null);
+        
+        background.add(labelP);
+        background.add(textP);
+        background.add(loginP);
+        background.add(findID_PasswordP);
+        
+        scrollPane = new JScrollPane(background);
+        setContentPane(scrollPane);		
+		
 		setVisible(true);
 		setResizable(false);
-		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);		
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);			
 	}
+
+
 
 	private void event() {
 		cancelB.addActionListener(this);
@@ -130,6 +175,8 @@ public class LogInWindow extends JFrame implements ActionListener{
 		findPasswordB = new JRadioButton("비밀번호 찾기", new ImageIcon());	
 		findIDB.setToolTipText("아이디 찾기");
 		findPasswordB.setToolTipText("비밀번호 찾기");
+		findIDB.setOpaque(false);
+		findPasswordB.setOpaque(false);
 	}
 
 	@Override

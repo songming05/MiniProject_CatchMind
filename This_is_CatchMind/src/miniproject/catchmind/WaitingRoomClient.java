@@ -1,6 +1,8 @@
 package miniproject.catchmind;
 
+import java.awt.Color;
 import java.awt.Container;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -21,6 +23,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -30,6 +33,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import miniproject.membership.dao.MembershipDAO;
+import miniproject.roomdao.RoomDAO;
 
 
 public class WaitingRoomClient extends JFrame implements ActionListener,MouseListener,ListSelectionListener,Runnable{
@@ -47,13 +51,23 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 	private String nickName;
 	private int score;
 	
-//-----------------방만들기 창 ---------------------------
+	private ImageIcon iconImage;//★★여기변경
+	private String iconImg = "cong.png";
+	private int state=1;//여기추가
+	private ImageIcon backImage;//
+	private JScrollPane roomScrollPane;//
+	private ImageIcon backCreateImage;//
+	private JScrollPane createScrollPane;//
+	
+//-----------------방만들기 창 ---------------------------asdasdasdsadasd
 	private JLabel roomNameL,passwordL,personL;
 	private JTextField roomNameF,passwordF;
 	private JButton roomCreateB,roomCancleB;
 	private JComboBox<String> personCB;
 //방만들때 필요한 정보 전송을 위한 ArrayList
 	private ArrayList<waitingRoomUserDTO> UserData;
+	private ArrayList<waitingRoomRCreateDTO> PersonCheck;
+
 	
 	
 //-------------캔버스 보낼떄 필요한 ---------------------------
@@ -67,6 +81,8 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 		sendList = new ArrayList<catchmind_ShapDTO>();
 		//유저데이터 보내기 리스트
 		UserData = new ArrayList<waitingRoomUserDTO>();
+		//방만들기시 인원수 체크
+		PersonCheck = new ArrayList<waitingRoomRCreateDTO>();
 		//방 목록
 		roomListL = new JLabel("방 목록");
 		roomModel = new DefaultListModel<waitingRoomRCreateDTO>();
@@ -89,15 +105,15 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 		chattingB = new JButton("보내기");
 
 		//내 정보
-		idL = new JLabel("아이디");
+		idL = new JLabel("ID");
 		idF = new JTextField(20);
 		idF.setEditable(false);
 		pointL = new JLabel("점  수");
 		pointF = new JTextField(20);
 		pointF.setEditable(false);
 		myB = new JButton("내 정보");
-		myIB = new JButton(new ImageIcon("red.png")); // 나중에 사진으로 대체 
-		myIB.setEnabled(false);
+		myIB = new JButton(new ImageIcon("cong.png")); // 나중에 사진으로 대체 
+		myIB.setEnabled(true);
 		
 		//setLatout 좌표
 		int leftW = 50;//왼쪽 모서리 폭
@@ -141,12 +157,118 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 		con.add(idL); 	 con.add(idF);
 		con.add(pointL); con.add(pointF);
 		con.add(myB); 	 con.add(myIB);
+		
+		
+		
+		//
+		backImage = new ImageIcon("wait.jpg");
+        JPanel background = new JPanel() {
+            public void paintComponent(Graphics g) {
+                g.drawImage(backImage.getImage(), 0, 0, null);
+                setOpaque(false);
+                super.paintComponent(g);
+            }     
+        };
+        background.setLayout(null);
+        
+        background.add(roomListL);
+        background.add(roomList);
+        background.add(roomB);
+        background.add(userL);
+        background.add(userListL);
+        background.add(chattingL);
+        background.add(scrollC);
+        background.add(chattingF);
+        background.add(chattingB);
+        background.add(idL);
+        background.add(idF);
+        background.add(pointL);
+        background.add(pointF);
+        background.add(myB);
+        background.add(myIB);
+        
+        roomScrollPane = new JScrollPane(background);
+        setContentPane(roomScrollPane);
+		//
+		
 
 		setTitle("CatchMind - Robby");
 		setResizable(false);
 		setBounds(750,300,700,700);
 		setVisible(true);
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		
+		myIB.addActionListener(new ActionListener()
+		 {   
+			 @Override
+			 public void actionPerformed(ActionEvent e)
+			 {
+ // TODO Auto-generated method stub
+				 if(e.getSource() == myIB)
+				 {
+  //상태에 따라 알맞게 버튼에 그림 넣어줌
+					 if(state == 0)
+					 {
+						 iconImage = new ImageIcon("cong.png");
+						 iconImg="cong.png";
+						 myIB.setIcon(iconImage);
+					 }
+					 else if(state == 1)
+					 {
+						 iconImage = new ImageIcon("ag.png");
+						 iconImg="ag.png";
+						 myIB.setIcon(iconImage);      
+					 }
+					 else if(state == 2)
+					 {
+						 iconImage = new ImageIcon("cona.png");
+						 iconImg="cona.png";
+						 myIB.setIcon(iconImage);
+					 }
+					 else if(state == 3)
+					 {
+						 iconImage = new ImageIcon("dora.png");
+						 iconImg="dora.png";
+						 myIB.setIcon(iconImage);
+					 }
+					 else if(state == 4)
+					 {
+						 iconImage = new ImageIcon("bo.png");
+						 iconImg="bo.png";
+						 myIB.setIcon(iconImage);
+					 }
+					 else if(state == 5)
+					 {
+						 iconImage = new ImageIcon("je.png");
+						 iconImg="je.png";
+						 myIB.setIcon(iconImage);
+					 }
+					 else if(state ==6)
+					 {
+						 iconImage = new ImageIcon("ru.png");
+						 iconImg="ru.png";
+						 myIB.setIcon(iconImage);
+					 }
+					 else if(state ==7)
+					 {
+						 iconImage = new ImageIcon("jang.png");
+						 iconImg="jang.png";
+						 myIB.setIcon(iconImage);
+					 }
+					 else if(state ==8)
+					 {
+						 iconImage = new ImageIcon("pica.png");
+						 iconImg="pica.png";
+						 myIB.setIcon(iconImage);
+					 }
+						 
+  
+					 state++;
+					 if(state > 8) state = 0;
+				 }//if문 종료
+ 
+			 }
+		 });
 		
 		addWindowListener(new WindowAdapter() {
 			@Override
@@ -171,9 +293,6 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 					oos.writeObject(sendList);
 					oos.writeObject(gameuserDTO);
 					oos.flush();
-					//oos.close();
-					//ois.close();
-					//socket.close();
 					
 				}catch(IOException io){
 					io.printStackTrace();
@@ -228,6 +347,7 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 		personL = new JLabel("게임인원");
 		personCB = new JComboBox<String>(number);
 		personCB.setSelectedItem(0);
+		RoomDAO roomDAO = RoomDAO.getInstance();
 		
 		roomCreateB = new JButton(" 만들기 ");
 		roomCancleB = new JButton(" 취  소 ");
@@ -245,7 +365,10 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 		roomFrame.add(passwordL); roomFrame.add(passwordF);
 		roomFrame.add(personL);   roomFrame.add(personCB);
 		roomFrame.add(roomCreateB);roomFrame.add(roomCancleB);
-		
+		//
+		Container back =roomFrame.getContentPane();
+		back.setBackground(new Color(230,255,255));
+		//
 		roomFrame.setTitle("방만들기");
 		roomFrame.setBounds(750,300,300,300);
 		roomFrame.setVisible(true);
@@ -254,6 +377,83 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 			@Override
 			public void	windowClosing(WindowEvent e){
 				roomFrame.dispose();
+			}
+		});
+		//enter 입력시 작동
+		roomNameF.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				waitingroomchattingDTO.setCommand(Info.WAIT);
+				waitingroomuserDTO.setCommand(Info.WAIT);
+				waitingroomrcreateDTO.setRoomName(roomNameF.getText());
+				waitingroomrcreateDTO.setRoomPass(passwordF.getText());
+				waitingroomrcreateDTO.setPerson(personCB.getSelectedIndex());
+				waitingroomrcreateDTO.setCommand(Info.CREATE);
+				waitingroomrcreateDTO.setOwner("방장");
+				
+				
+				if(roomNameF.getText().trim()!=null) {
+					boolean roomTitleCheck=false;//Default: 사용불가
+					roomTitleCheck = roomDAO.isRoomExist(roomNameF.getText().trim());
+					if(!roomTitleCheck) {
+						JOptionPane.showMessageDialog(WaitingRoomClient.this, "이미 사용중인 방 이름입니다");
+						return;
+					}
+					
+					if(waitingroomrcreateDTO.getPerson()== 0) {	
+						waitingroomrcreateDTO.setPerson(2);
+						waitingroomrcreateDTO.setLimitPerson(2);
+					}else if(waitingroomrcreateDTO.getPerson() == 1) {	
+						waitingroomrcreateDTO.setPerson(3);
+						waitingroomrcreateDTO.setLimitPerson(3);						
+					}else if(waitingroomrcreateDTO.getPerson() == 2) {	
+						waitingroomrcreateDTO.setPerson(4);
+						waitingroomrcreateDTO.setLimitPerson(4);
+					}
+				} else {
+					JOptionPane.showMessageDialog(WaitingRoomClient.this, "방 이름을 입력하세요");
+					return;					
+				}				
+				int roomSeq = roomDAO.getSeq();
+				waitingroomrcreateDTO.setRoomSeq(roomSeq);
+				
+				roomDAO.insertArticle(waitingroomrcreateDTO);
+				
+				roomDAO.plusPerson(waitingroomrcreateDTO);
+				int currentPerson = roomDAO.getCurrentPerson(waitingroomrcreateDTO);
+				waitingroomrcreateDTO.setCurrentPerson(currentPerson);
+				
+				
+				try {
+					//담아 보내기
+					waitingRoomUserDTO waitingroomuserDTO_send = new waitingRoomUserDTO();
+					for(int i = 0; i<UserData.size();i++) {
+						if(nickName.equals(UserData.get(i).getName())){
+							waitingroomuserDTO_send.setName(UserData.get(i).getName());
+							waitingroomuserDTO_send.setScore(UserData.get(i).getScore());
+						}
+					}
+									
+					ChatDTO chatDTO = new ChatDTO();
+					chatDTO.setCommand(Info.WAIT);
+					GameUserDTO gameuserDTO = new GameUserDTO();
+					gameuserDTO.setCommand(Info.WAIT);
+					
+					oos.writeObject(waitingroomchattingDTO);
+					oos.writeObject(waitingroomuserDTO);
+					oos.writeObject(waitingroomrcreateDTO);
+					oos.writeObject(chatDTO);
+					oos.writeObject(sendList);
+					oos.writeObject(gameuserDTO);
+					oos.flush();
+				
+					chatframe = new ChatFrame(WaitingRoomClient.this);//방만들기 버튼
+					chatframe.service(waitingroomrcreateDTO, waitingroomuserDTO_send);						
+				} catch (IOException ie) {
+					ie.printStackTrace();
+				}
+				setVisible(false);
+				roomFrame.dispose();	
 			}
 		});
 		roomCreateB.addActionListener(new ActionListener() {
@@ -265,73 +465,74 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 				waitingroomrcreateDTO.setRoomPass(passwordF.getText());
 				waitingroomrcreateDTO.setPerson(personCB.getSelectedIndex());
 				waitingroomrcreateDTO.setCommand(Info.CREATE);
+				waitingroomrcreateDTO.setOwner("방장");
 				
-		
-				
-				if(roomNameF.getText()!=null) {
-					try {
-						if(waitingroomrcreateDTO.getPerson()== 0) {
-							waitingroomrcreateDTO.setPerson(2);
-						}else if(waitingroomrcreateDTO.getPerson() == 1) {
-							waitingroomrcreateDTO.setPerson(3);
-						}else if(waitingroomrcreateDTO.getPerson() == 2) {
-							waitingroomrcreateDTO.setPerson(4);
-						}
-				
-						
-						//보내줄 방 데이터 저장 
-						String roomName = waitingroomrcreateDTO.getRoomName();
-						String roomPass = waitingroomrcreateDTO.getRoomPass();
-						int person = waitingroomrcreateDTO.getPerson();
-						int roomNumber = waitingroomrcreateDTO.getRoomNumber();
-						
-						//담아 보내기
-						waitingRoomUserDTO waitingroomuserDTO_send = new waitingRoomUserDTO();
-						for(int i = 0; i<UserData.size();i++) {
-							if(nickName.equals(UserData.get(i).getName())){
-								waitingroomuserDTO_send.setName(UserData.get(i).getName());
-								waitingroomuserDTO_send.setScore(UserData.get(i).getScore());
-							}
-						}
-						
-						
-						waitingRoomRCreateDTO waitingroomrcreateDTO_send = new waitingRoomRCreateDTO();
-						waitingroomrcreateDTO_send.setRoomName(roomName);
-						waitingroomrcreateDTO_send.setRoomPass(roomPass);
-						waitingroomrcreateDTO_send.setPerson(person);
-						waitingroomrcreateDTO_send.setRoomNumber(roomNumber);
-						
-						ChatDTO chatDTO = new ChatDTO();
-						chatDTO.setCommand(Info.WAIT);
-						//chatDTO.setCommand(Info.JOIN);
-						GameUserDTO gameuserDTO = new GameUserDTO();
-						gameuserDTO.setCommand(Info.WAIT);
-						//gameuserDTO.setCommand(Info.JOIN);
-						
-						//ChatFrame chatframe = new ChatFrame(waitingroomrcreateDTO_send);
-						
-						oos.writeObject(waitingroomchattingDTO);
-						oos.writeObject(waitingroomuserDTO);
-						oos.writeObject(waitingroomrcreateDTO);
-						oos.writeObject(chatDTO);
-						oos.writeObject(sendList);
-						oos.writeObject(gameuserDTO);
-						oos.flush();
-						
-						chatframe = new ChatFrame(waitingroomrcreateDTO_send,waitingroomuserDTO_send);
-							//	oos,ois);
-						
-						//ChatFrame chatframe = new ChatFrame(waitingroomrcreateDTO_send);
-						
-					} catch (IOException ie) {
-						ie.printStackTrace();
+				if(roomNameF.getText().trim()!=null) {
+					boolean roomTitleCheck=false;//Default: 사용불가
+					roomTitleCheck = roomDAO.isRoomExist(roomNameF.getText().trim());
+					if(!roomTitleCheck) {
+						JOptionPane.showMessageDialog(WaitingRoomClient.this, "이미 사용중인 방 이름입니다");
+						return;
 					}
+					
+					if(waitingroomrcreateDTO.getPerson()== 0) {	
+						waitingroomrcreateDTO.setPerson(2);
+						waitingroomrcreateDTO.setLimitPerson(2);
+					}else if(waitingroomrcreateDTO.getPerson() == 1) {	
+						waitingroomrcreateDTO.setPerson(3);
+						waitingroomrcreateDTO.setLimitPerson(3);						
+					}else if(waitingroomrcreateDTO.getPerson() == 2) {	
+						waitingroomrcreateDTO.setPerson(4);
+						waitingroomrcreateDTO.setLimitPerson(4);
+					}
+				} else {
+					JOptionPane.showMessageDialog(WaitingRoomClient.this, "방 이름을 입력하세요");
+					return;					
+				}				
+				int roomSeq = roomDAO.getSeq();
+				waitingroomrcreateDTO.setRoomSeq(roomSeq);
+				
+				roomDAO.insertArticle(waitingroomrcreateDTO);
+				
+				roomDAO.plusPerson(waitingroomrcreateDTO);
+				int currentPerson = roomDAO.getCurrentPerson(waitingroomrcreateDTO);
+				waitingroomrcreateDTO.setCurrentPerson(currentPerson);
+				try {
+					//담아 보내기
+					waitingRoomUserDTO waitingroomuserDTO_send = new waitingRoomUserDTO();
+					for(int i = 0; i<UserData.size();i++) {
+						if(nickName.equals(UserData.get(i).getName())){
+							waitingroomuserDTO_send.setName(UserData.get(i).getName());
+							waitingroomuserDTO_send.setScore(UserData.get(i).getScore());
+						}
+					}
+									
+					ChatDTO chatDTO = new ChatDTO();
+					chatDTO.setCommand(Info.WAIT);
+					GameUserDTO gameuserDTO = new GameUserDTO();
+					gameuserDTO.setCommand(Info.WAIT);
+
+					
+					oos.writeObject(waitingroomchattingDTO);
+					oos.writeObject(waitingroomuserDTO);
+					oos.writeObject(waitingroomrcreateDTO);
+					oos.writeObject(chatDTO);
+					oos.writeObject(sendList);
+					oos.writeObject(gameuserDTO);
+					oos.flush();										
+						
+					chatframe = new ChatFrame(WaitingRoomClient.this);//방만들기 버튼
+					chatframe.service(waitingroomrcreateDTO, waitingroomuserDTO_send);
+					
+				} catch (IOException ie) {
+					ie.printStackTrace();
+				}
 					
 					
 
-					setVisible(false);
-					roomFrame.dispose();
-				}
+				setVisible(false);
+				roomFrame.dispose();
+				
 			}
 		});
 		roomCancleB.addActionListener(new ActionListener() {
@@ -444,11 +645,11 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 				}
 				
 				if(waitingroomrcreateDTO.getCommand() == Info.CREATE) {
+
+					if(waitingroomrcreateDTO.getOwner().equals("방장"))
+						roomModel.addElement(waitingroomrcreateDTO);//방장이 만들시만 방목록에 추가
 					
-					//대기실 유저 목록에서 삭제
-					//userModel.remove(waitingRoomUserDTO_send.getIndexNumber());
-					
-					roomModel.addElement(waitingroomrcreateDTO);
+					PersonCheck.add(waitingroomrcreateDTO);// 방 인원수 체크
 					
 					
 				}
@@ -465,7 +666,7 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 					idF.setText(user);
 					pointF.setText(newScore+"");
 					
-					if(nickName.equals(gameuserDTO.getName()))setVisible(true);// WaitingRoomClient 464에 추가 
+					//if(nickName.equals(gameuserDTO.getName()))setVisible(true);// WaitingRoomClient 464에 추가 
 				
 				}
 				
@@ -479,14 +680,21 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 		
 	}
 	
+	
+	public void service(ChatDTO chatDTO) {
+	}
+	
+	
+	
+	
 	public void service(IdNameScoreDTO idnamescoreDTO) {
 	//public void service( ) {	
 		nickName = idnamescoreDTO.getId();
 		//id = getName();
 		//score = idnamescoreDTO.getScore();
-		//nickName = JOptionPane.showInputDialog("아이디를 입력하세요");
-		String serverIP = JOptionPane.showInputDialog("서버IP를 입력하세요","192.168.51.134");
-		//String serverIP ="192.168.51.97";
+		//nickName = JOptionPane.showInputDialog("사용하실 닉네임을 입력하세요");
+		//String serverIP = JOptionPane.showInputDialog("서버IP를 입력하세요","192.168.51.71");
+		String serverIP ="192.168.51.79";
 																		
 		if(serverIP==null || serverIP.length()==0){
 			System.out.println("서버 IP가 입력되지 않았습니다");
@@ -496,7 +704,7 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 		try {
 			
 			socket = new Socket(serverIP, 9500);			//서버 입력 : 아직 미입력 
-			oos = new ObjectOutputStream(socket.getOutputStream());
+			oos = new ObjectOutputStream(socket.getOutputStream()); 
 			ois = new ObjectInputStream(socket.getInputStream());
 			
 			//채팅 DTO
@@ -546,11 +754,7 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 	
 	@Override
 	public void valueChanged(ListSelectionEvent arg0) {
-		//roomList.getSelectedIndex();
-		//System.out.println(roomList.getSelectedIndex());
-		//roomList.getSelectedValue();
-		//System.out.println(roomList.getSelectedValue());
-		
+	
 	}
 
 	@Override
@@ -562,58 +766,70 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 				
 				if(roomList.getSelectedIndex()>= 0) {
 					answer = JOptionPane.showConfirmDialog( this, "방에 입장 하시겠습니까?","방만들기",JOptionPane.YES_NO_CANCEL_OPTION); //실행될꺼 , 메세지 
-			
+					
+					waitingRoomRCreateDTO waitingroomrcreateDTO_send = new waitingRoomRCreateDTO();
+					waitingroomrcreateDTO_send.setCommand(Info.CREATE);
+					waitingroomrcreateDTO_send = roomList.getSelectedValue();
 	
-					if(answer==JOptionPane.YES_OPTION){
-							
-						try {
-							int roomListNumber = roomList.getSelectedIndex();
-							
-							WaitingRoomChattingDTO waitingroomchattingDTO_send= new WaitingRoomChattingDTO();
-							waitingroomchattingDTO_send.setCommand(Info.WAIT);
-							
-							waitingRoomUserDTO waitingroomuserDTO_send = new waitingRoomUserDTO();
-							waitingroomuserDTO_send.setCommand(Info.WAIT);
-							for(int i = 0; i<UserData.size();i++) {
-								if(nickName.equals(UserData.get(i).getName())){
-									waitingroomuserDTO_send.setName(UserData.get(i).getName());
-									waitingroomuserDTO_send.setScore(UserData.get(i).getScore());
+					if(answer==JOptionPane.YES_OPTION){						
+						if( PersonCheck.get(waitingroomrcreateDTO_send.getRoomNumber()-1).getRoomName().equals(waitingroomrcreateDTO_send.getRoomName()) &&
+								waitingroomrcreateDTO_send.getPerson() > PersonCheck.size() ) {//방제목 체크 , 인원수 체크
+
+							try {
+								int roomListNumber = roomList.getSelectedIndex();
+								
+								WaitingRoomChattingDTO waitingroomchattingDTO_send= new WaitingRoomChattingDTO();
+								waitingroomchattingDTO_send.setCommand(Info.WAIT);
+								
+								waitingRoomUserDTO waitingroomuserDTO_send = new waitingRoomUserDTO();
+								waitingroomuserDTO_send.setCommand(Info.WAIT);
+								for(int i = 0; i<UserData.size();i++) {
+									if(nickName.equals(UserData.get(i).getName())){
+										waitingroomuserDTO_send.setName(UserData.get(i).getName());
+										waitingroomuserDTO_send.setScore(UserData.get(i).getScore());
+									}
 								}
+								
+								
+								waitingroomrcreateDTO_send.setOwner("유저");
+								waitingroomrcreateDTO_send.setRoomNumber(roomListNumber); //방 번호 입력
+								
+								//System.out.println(roomList.getSelectedIndex());
+								
+		
+								
+								ChatDTO chatDTO = new ChatDTO();
+								chatDTO.setCommand(Info.WAIT);
+								GameUserDTO gameuserDTO = new GameUserDTO();
+								gameuserDTO.setCommand(Info.WAIT);
+								
+								oos.writeObject(waitingroomchattingDTO_send);
+								oos.writeObject(waitingroomuserDTO_send);
+								oos.writeObject(waitingroomrcreateDTO_send);
+								oos.writeObject(chatDTO);
+								oos.writeObject(sendList);
+								oos.writeObject(gameuserDTO);
+								oos.flush();
+								
+								
+								//oos.close();
+								//ois.close();
+								//socket.close();
+								chatframe = new ChatFrame(); //마우스 클릭
+								//chatframe.service();
+								chatframe.service( waitingroomrcreateDTO_send, waitingroomuserDTO_send);
+								
+								setVisible(false);
+								
+								
+							} catch (IOException e) {
+								e.printStackTrace();
 							}
-							
-							waitingRoomRCreateDTO waitingroomrcreateDTO_send = new waitingRoomRCreateDTO();
-							waitingroomrcreateDTO_send.setCommand(Info.CREATE);
-							waitingroomrcreateDTO_send = roomList.getSelectedValue();// 방 DTO 를  복사
-							waitingroomrcreateDTO_send.setRoomNumber(roomListNumber); //방 번호 입력
-							
-							//System.out.println(roomList.getSelectedIndex());
-							
-	
-							
-							ChatDTO chatDTO = new ChatDTO();
-							chatDTO.setCommand(Info.WAIT);
-							GameUserDTO gameuserDTO = new GameUserDTO();
-							gameuserDTO.setCommand(Info.WAIT);
-							
-							oos.writeObject(waitingroomchattingDTO_send);
-							oos.writeObject(waitingroomuserDTO_send);
-							oos.writeObject(waitingroomrcreateDTO_send);
-							oos.writeObject(chatDTO);
-							oos.writeObject(sendList);
-							oos.writeObject(gameuserDTO);
-							oos.flush();
-							
-							chatframe = new ChatFrame(waitingroomrcreateDTO_send,waitingroomuserDTO_send);
-							
-							setVisible(false);
-							
-							
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-						
-;
+						} else {
+			                   JOptionPane.showMessageDialog( this, "정원을 초과했습니다");
+			               }
 					}//YES_OPTION
+					
 					
 				}else if(answer==JOptionPane.NO_OPTION) {
 					
@@ -633,11 +849,12 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 	public void mouseReleased(MouseEvent arg0) {}
 	
 	//------------------ 내정보 ----------------------------------
-	private void myInfo() {
+	public void myInfo() {
 		waitingRoomMyInfo waitingroommyinfo = new waitingRoomMyInfo();
-		waitingroommyinfo.myinfoC();
+		waitingroommyinfo.myinfoC(iconImg, nickName);
 	}
 	//----------------------------------------------------
+	
 	
 	
 //	public static void main(String []args) {
@@ -645,7 +862,7 @@ public class WaitingRoomClient extends JFrame implements ActionListener,MouseLis
 //		waitingroomclient.event();
 //		waitingroomclient.service();
 //	}
-	 
+//	 
 
 }
 
